@@ -29,6 +29,18 @@ def generate_launch_description():
         executable='joint_state_publisher',
         name='joint_state_publisher'
     )
+    
+    aruco_generate_marker_node = Node(
+        package='ros2_aruco',
+        executable='aruco_generate_marker',
+        name='aruco_generate_marker'
+    )
+    
+    aruco_node = Node(
+        package='ros2_aruco',
+        executable='aruco_node',
+        name='aruco_node'
+    )
    
 
     # GAZEBO_MODEL_PATH has to be correctly set for Gazebo to be able to find the model
@@ -41,6 +53,8 @@ def generate_launch_description():
                                     description='Absolute path to robot urdf file'),
         robot_state_publisher_node,
         joint_state_publisher_node,
+        aruco_generate_marker_node,
+        aruco_node,
         spawn_entity,
         ExecuteProcess(
             cmd=['gazebo', '--verbose', default_world_path, '-s', 'libgazebo_ros_factory.so'],
