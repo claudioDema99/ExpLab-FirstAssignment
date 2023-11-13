@@ -132,7 +132,7 @@
 	<limit effort="1.0" lower="-3.14" upper="3.14" velocity="10.0"/>
 </joint>
   
-<link name="camera">
+<link name="camera_link">
 	<collision>
 		<origin xyz="0 0 0.075" rpy="0 0 0"/>
 		<geometry>
@@ -160,7 +160,7 @@
 	<axis xyz="0 0 1" />
 	<origin xyz="0 0 0" rpy="0 0 0"/>
 	<parent link="link_camera_rot"/>
-	<child link="camera"/> 
+	<child link="camera_link"/> 
 </joint>
 
 </robot>
