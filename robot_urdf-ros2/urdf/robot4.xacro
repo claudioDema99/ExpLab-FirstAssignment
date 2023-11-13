@@ -37,7 +37,7 @@
 	<joint name="${name}" type="continuous">
 		<origin rpy="0 0 0" xyz="${origin_xyz}"/>
 		<child link="${child}"/>
-		<parent link="base_link"/>
+		<parent link="link_chassis"/>
 		<axis rpy="0 0 0" xyz="0 1 0"/>
 		<limit effort="10000" velocity="1000"/>
 		<joint_properties damping="1.0" friction="1.0"/>
@@ -46,7 +46,7 @@
 
 
   
-<link name="base_link">
+<link name="link_chassis">
 	<!-- pose and inertial -->
 	<pose>0 0 0.1 0 0 0</pose>
 
@@ -110,15 +110,15 @@
   		<inertia ixx="0.000010279" ixy="0" ixz="0" iyy="0.000010279" iyz="0" izz="0.000007225"/>
   	</inertial> 
 	<collision>
-  	  <origin xyz="0 0 0.05" rpy="0 0 0"/>
+  	  <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.05" length="0.08"/>
+        <cylinder radius="0.05" length="0.1"/>
       </geometry>
   	</collision>
 	<visual>
   	  <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.05" length="0.08"/>
+        <cylinder radius="0.05" length="0.1"/>
       </geometry>
       <material name="red" />
   	</visual>	 	
@@ -157,11 +157,10 @@
 
   
 <joint name="camera_joint" type="fixed">
-	<axis xyz="0 1 0" />
+	<axis xyz="0 0 1" />
 	<origin xyz="0 0 0" rpy="0 0 0"/>
 	<parent link="link_camera_rot"/>
 	<child link="camera"/> 
 </joint>
-  
 
 </robot>
