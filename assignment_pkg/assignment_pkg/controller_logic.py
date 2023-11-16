@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import rclpy
 import math
+from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 
 from std_msgs.msg import String
@@ -44,120 +45,48 @@ class ControllerLogic(Node):
         self.m13 = 0
         self.m15 = 0
         self.flag = 0
+        ###################################################################################################################
+        self.Kl = 0.4
+        self.Ka = 1.0
+        ###################################################################################################################
+        self.count = 0
+        self.x_array = [-1, -2, -3.4, -2.7]
+        self.y_array = [2, 0.1, 1.3, 0.4]
+        self.x_goal = self.x_array[self.count]
+        self.y_goal = self.y_array[self.count]
 
-    def timer_callback(self):
-        a = 1
-        b = 1
-        #c = 0
-        x_gol = 1.5
-        y_gol = 1.5
-        theta_gol = 1.9 # theta marker - pi greco..
-        cmd_vel = Twist()
-        if a*(x_gol-self.x)<0.1 or b*(y_gol-self.y)<0.1:
-            self.stop_first()
-            if theta_gol - self.theta > 0.05:# + c
-                cmd_vel.linear.x = 0.0
-                cmd_vel.angular.z = 0.5
+
+    def timer_callback(self):# theta della camera a cui mi devo allineare
+        # self.x_goal e self.y_goal sono la posizione del marker che devo raggiungere
+        e_a = math.atan2(self.y_goal - self.y, self.x_goal - self.x) 
+        if e_a < 0:
+            e_a = math.pi + (math.pi + e_a)
+        self.get_logger().info('ROBOT THETA : "%f"' % self.theta)
+        self.get_logger().info('E_A : "%f"' % e_a)
+        if abs(e_a - self.theta) > 0.1:
+            if e_a > self.theta:
+                self.rotate_counter()
             else:
-                e_d = math.sqrt((self.x - 1.5)**2 + (self.y - 1.5)**2)
-                cmd_vel.linear.x = float(e_d)
-                cmd_vel.angular.z = 0.0
-                if e_d <= 0.5:
-                    cmd_vel.linear.x = 0.0
+                self.rotate_clockwise()
         else:
-            e_a = theta_gol - self.theta
-            e_d = math.sqrt((self.x - 1.5)**2 + (self.y - 1.5)**2)
-            if e_d <= 0.1:
-                e_d = 0.0
-                e_a = 0.0
-            if e_a <= 0.2:
-                e_d = 0.5/0.4
-                #c = 1.57
-            # Compute control inputs
-            lin_control = 0.4 * e_d
-            ang_control = 0.4 * e_a
-            # Build twist msg
-            cmd_vel.linear.x = float(lin_control)
-            cmd_vel.angular.z = float(ang_control)
-        self.publisher_.publish(cmd_vel)
-        self.get_logger().info('X: "%f"' % (self.x))
-        self.get_logger().info('Y: "%f"' % (self.y))
-        self.get_logger().info('Theta: "%f"' % (self.theta))
-        """
-        # theta gol = theta marker - pi greco
-        theta_gol = 1.57
-        x_gol = 1.5
-        y_gol = 1.5
-        if self.x > x_gol:
-            if theta_gol - self.theta > 0.05:
-                cmd_vel = Twist()
-                cmd_vel.linear.x = 0.0
-                cmd_vel.angular.z = 0.5
-                self.publisher_.publish(cmd_vel)
-                self.get_logger().info('X: "%f"' % (self.x))
-                self.get_logger().info('Y: "%f"' % (self.y))
-                self.get_logger().info('Theta: "%f"' % (self.theta))
+            if (self.flag==0):
+                self.stop()
+                self.flag += 1
+            e_d = math.sqrt((self.x - self.x_goal)**2 + (self.y - self.y_goal)**2)
+            if e_d <= 0.5:
+                self.stop()
+                print('REACHED')
+                self.change_marker()
             else:
-                e_d = math.sqrt((self.x - 1.5)**2 + (self.y - 1.5)**2)
                 cmd_vel = Twist()
-                cmd_vel.linear.x = float(e_d)
+                cmd_vel.linear.x = 0.4 * e_d
                 cmd_vel.angular.z = 0.0
-                if e_d <= 0.5:
-                    cmd_vel.linear.x = 0.0
                 self.publisher_.publish(cmd_vel)
-                self.get_logger().info('X: "%f"' % (self.x))
-                self.get_logger().info('Y: "%f"' % (self.y))
-                self.get_logger().info('Theta: "%f"' % (self.theta))
-        else:
-            e_a = theta_gol - self.theta
-            # compute distance error
-            e_d = math.sqrt((self.x - 1.5)**2 + (self.y - 1.5)**2)
-            # compute angular error
-            #e_a = math.atan2(1.5 - self.y, 1.5 - self.x) - self.theta 
-            if e_d <= 0.1:
-                e_d = 0.0
-                e_a = 0.0
-            # Compute control inputs
-            lin_control = 0.3 * e_d
-            ang_control = 0.3 * e_a
-            # Build twist msg
-            cmd_vel = Twist()
-            cmd_vel.linear.x = float(lin_control)
-            cmd_vel.angular.z = float(ang_control)
-            # Publish it
-            self.publisher_.publish(cmd_vel)
-            self.get_logger().info('   E_D: "%f"' % (e_d))
-            self.get_logger().info('E_A: "%f"' % (e_a))
-            self.get_logger().info('X: "%f"' % (self.x))
-            self.get_logger().info('Y: "%f"' % (self.y))
-            self.get_logger().info('Theta: "%f"' % (self.theta))
-        
-        msg = Twist()
-        if self.m11 == 0: # we are looking for the marker 11
-            if self.distance > 0.2 and self.id_marker == 11:
-                msg.linear.x = -0.1
-            elif self.distance <= 0.2 and self.id_marker == 11:
-                msg.linear.x = 0.0
-                self.m11 = 1
-        elif self.m11 == 1 and self.m12 == 0: # we are looking for the marker 12
-            if self.distance > 0.2 and self.id_marker == 12:
-                msg.linear.x = 0.1
-            elif self.distance <= 0.2 and self.id_marker == 12:
-                msg.linear.x = 0.0
-                self.m12 = 1
-        elif self.m12 == 1 and self.m13 == 0: # we are looking for the marker 13
-            if self.distance > 0.2 and self.id_marker == 13:
-                msg.linear.x = 0.1
-            elif self.distance <= 0.2 and self.id_marker == 13:
-                msg.linear.x = 0.0
-                self.m13 = 1
-        elif self.m13 == 1 and self.m15 == 0: # we are looking for the marker 15
-            if self.distance > 0.2 and self.id_marker == 15:
-                msg.linear.x = 0.1
-            elif self.distance <= 0.2 and self.id_marker == 15:
-                msg.linear.x = 0.0
-                self.m15 = 1
-        self.publisher_.publish(msg)"""
+
+    def change_marker(self):
+        self.count += 1 
+        self.x_goal = self.x_array[self.count]
+        self.y_goal = self.y_array[self.count]
 
     def aruco_callback(self, msg):
         #self.get_logger().info('I heard mid: "%s"' % msg.marker_ids[0])
@@ -188,29 +117,46 @@ class ControllerLogic(Node):
         #self.get_logger().info('X: "%f"' % (self.x))
         #self.get_logger().info('Y: "%f"' % (self.y))
         #self.get_logger().info('Theta: "%f"' % (self.theta))
+        
+    def stop(self):
+        cmd_vel = Twist()
+        cmd_vel.linear.x = 0.0
+        cmd_vel.angular.z = 0.0
+        self.publisher_.publish(cmd_vel)
+        
+    def rotate_clockwise(self):
+        cmd_vel = Twist()
+        cmd_vel.linear.x = 0.0
+        cmd_vel.angular.z = -0.5
+        self.publisher_.publish(cmd_vel)
     
-    def stop_first(self):
-        if self.flag == 0:
-            cmd_vel = Twist()
-            cmd_vel.linear.x = 0.0
-            cmd_vel.angular.z = 0.0
-            self.publisher_.publish(cmd_vel)
-            self.flag += 1
-        else:
-            return
+    def rotate_counter(self):
+        cmd_vel = Twist()
+        cmd_vel.linear.x = 0.0
+        cmd_vel.angular.z = 0.5
+        self.publisher_.publish(cmd_vel)
+        
 
 def main(args=None):
     rclpy.init(args=args)
 
-    controller_logic = ControllerLogic()
+    try:
+    # declare the node constructor
+        controller_logic = ControllerLogic()
 
-    rclpy.spin(controller_logic)
+        executor = MultiThreadedExecutor(num_threads=2)
+        executor.add_node(controller_logic)
 
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    controller_logic.destroy_node()
-    rclpy.shutdown()
+        try:
+            # pause the program execution, waits for a request to kill the node (ctrl+c)
+            executor.spin()
+        finally:
+            executor.shutdown()
+            controller_logic.destroy_node()
+
+    finally:
+        # shutdown the ROS communication
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':
