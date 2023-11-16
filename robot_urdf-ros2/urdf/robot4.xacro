@@ -129,7 +129,7 @@
 	<child link="link_camera_rot"/>
 	<parent link="link_chassis"/>
 	<axis rpy="0 0 0" xyz="0 0 1"/>
-	<limit effort="1.0" lower="-3.14" upper="3.14" velocity="10.0"/>
+	<limit effort="1.0" lower="0" upper="6.29" velocity="10.0"/>
 </joint>
   
 <link name="camera_link">
