@@ -3,6 +3,6 @@ float64 x_goal
 float64 y_goal
 ---
 # Result
-bool result
+bool reached
 ---
 # Feedback
