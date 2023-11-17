@@ -1,4 +1,7 @@
 # Request
+float32 theta
+bool detected
+bool reached
 ---
 # Result
 ---
