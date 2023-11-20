@@ -3,6 +3,7 @@ import rclpy
 import math
 import time
 from rclpy.node import Node
+from rclpy.executors import MultiThreadedExecutor
 from rclpy.action import ActionServer
 from action_msgs.msg import GoalStatus
 from my_interface.action import MarkerPosition
@@ -40,8 +41,8 @@ class ControllerLogic(Node):
         goal = goal_handle.request
         self.x_goal = goal.x_goal
         self.y_goal = goal.y_goal
-        self.get_logger().info('    GOAL: X = "%f" Y = "%f" Theta = "%f"' % (self.x_goal, self.y_goal, self.theta_goal))
         self.theta_goal = goal.theta_goal
+        self.get_logger().info('    GOAL: X = "%f" Y = "%f" Theta = "%f"' % (self.x_goal, self.y_goal, self.theta_goal))
         goal_handle.succeed()
         self.robot_movement()
         if self.flag == 2:
@@ -109,20 +110,31 @@ class ControllerLogic(Node):
             roll = math.pi + (math.pi + roll)
         self.theta = roll
 
+
 def main(args=None):
     rclpy.init(args=args)
 
     try:
         controller_logic = ControllerLogic()
 
+        # Create a multi-threaded executor
+        executor = MultiThreadedExecutor()
+
+        # Add the node to the executor
+        executor.add_node(controller_logic)
+
         try:
-            rclpy.spin(controller_logic)
+            # Use spin_once() instead of spin() to allow for multi-threaded execution
+            while rclpy.ok():
+                executor.spin_once()
 
         finally:
+            # Clean up
             rclpy.shutdown()
 
-    finally:
-        rclpy.shutdown()
+    except Exception as e:
+        print(f"Error in main: {str(e)}")
 
 if __name__ == '__main__':
     main()
+
