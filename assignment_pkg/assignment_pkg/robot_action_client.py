@@ -9,7 +9,7 @@ from ros2_aruco_interfaces.msg import ArucoMarkers
 
 from custom_action_interfaces_1explab.action import MarkerPosition
 
-class CameraActionClient(Node):
+class RobotActionClient(Node):
 
     def __init__(self):
         super().__init__('robot_action_client')
@@ -40,7 +40,7 @@ class CameraActionClient(Node):
         self.marker_number = 0
         self.flag = 0
 
-    ## TIMER for CONTROLLER LOGIC ##
+    ## TIMER for CONTROLLER the LOGIC ##
     def timer_callback(self):
         if self.flag == 0:
             self.rotation_camera_activation(True)
@@ -96,7 +96,7 @@ class CameraActionClient(Node):
         msg.data = on_off
         self.publisher_camera_onoff.publish(msg)
         
-    # PUBLISHER to CAMERA the theta_goal
+    ## PUBLISHER to CAMERA the theta_goal ##
     def position_marker_camera(self, theta):
         msg = float()
         msg.data = theta
@@ -119,7 +119,7 @@ class CameraActionClient(Node):
         self.x_goal = msg.poses[0].position.x
         self.y_goal = msg.poses[0].position.y
         
-    # CONTROLLER and DOING stuf with the camera
+    # WAIT for the MARKER to be in the AREA and then MOVE the ROBOT to the MARKER with the camera doing the motion 
     def aruco_controller_area(self):
         # Capture a frame from the camera
         ret, frame = self.cap.read()
@@ -210,9 +210,7 @@ class CameraActionClient(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    action_client = CameraActionClient()
-
-    action_client.send_goal(10)
+    action_client = RobotActionClient()
 
     rclpy.spin(action_client)
 
