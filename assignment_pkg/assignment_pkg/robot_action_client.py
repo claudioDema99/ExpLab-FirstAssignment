@@ -7,16 +7,13 @@ import cv2
 from cv2 import aruco
 from ros2_aruco_interfaces.msg import ArucoMarkers
 
-from custom_action_interfaces_1explab.action import Camera
 from custom_action_interfaces_1explab.action import MarkerPosition
 
 class CameraActionClient(Node):
 
     def __init__(self):
-        super().__init__('camera_action_client')
-        # ACTION CLIENT to CAMERA
-        self._action_client = ActionClient(self, Camera, 'camera')
-        # ACTION CLIENT to CONTROLLER
+        super().__init__('robot_action_client')
+        # ACTION CLIENT to MOVE the ROBOT
         self._action_client = ActionClient(self, MarkerPosition, 'controller')
          # SUBSCRIBER TO ARUCO_MARKERS
         self.subscription_aruco = self.create_subscription(
@@ -26,9 +23,9 @@ class CameraActionClient(Node):
             10)
         self.subscription_aruco  # prevent unused variable warning
         # PUBBLISHER TO CAMERA for rotating itself
-        self.publisher_camera = self.create_publisher(bool, 'camera_on_off', 10)
+        self.publisher_camera_onoff = self.create_publisher(bool, 'camera_on_off', 10)
         # PUBBLISHER TO CAMERA the theta_goal
-        self.publisher_camera = self.create_publisher(float, 'camera_theta_goal', 10)
+        self.publisher_camera_theta = self.create_publisher(float, 'camera_theta_goal', 10)
         # Initialize the camera or video feed
         self.cap = cv2.VideoCapture(0)  # Use 0 for default camera, update accordingly
         # timer for doing the controller logic
@@ -48,9 +45,13 @@ class CameraActionClient(Node):
         if self.flag == 0:
             self.rotation_camera_activation(True)
             self.aruco_controller_area()
-        else:
-            self.position_marker_camera(self.theta)
-
+        elif self.flag == 1:
+            self.aruco_follow_marker()
+        # if the markers are reached go in home position
+        if self.marker_number == 4:
+            self.flag = 3
+            self.send_goal_position_marker(0, 0, 0)
+            self.position_marker_camera(0)
         
     ## REQUEST to CONTROLLER to move to the goal position##
     def send_goal_position_marker(self, x_goal, y_goal, theta):
@@ -81,6 +82,7 @@ class CameraActionClient(Node):
     def get_result_callback(self, future):
         result = future.result().result
         self.get_logger().info('Result: {0}'.format(result.reached))
+        self.marker_number += 1
         self.flag = 0
 
     # feedback callback we aren't using it
@@ -92,13 +94,13 @@ class CameraActionClient(Node):
     def rotation_camera_activation(self, on_off):
         msg = bool()
         msg.data = on_off
-        self.publisher_camera.publish(msg)
+        self.publisher_camera_onoff.publish(msg)
         
     # PUBLISHER to CAMERA the theta_goal
     def position_marker_camera(self, theta):
         msg = float()
         msg.data = theta
-        self.publisher_camera.publish(msg)      
+        self.publisher_camera_theta.publish(msg)      
         
     ## callback for UPDATE the ARUCO MARKER'S INFO ##
     def aruco_callback(self, msg):
@@ -148,16 +150,14 @@ class CameraActionClient(Node):
             # Define the minimum and maximum allowed area
             min_area = 400  # 20x20 pixels
 
-            # Check if the marker area is inside the minimun area
-            if min_area < marker_area:
+            # Check if the marker area is inside the minimun area and the markers data are updated
+            if min_area < marker_area and self.id_marker == target_marker_id:
                 # Marker is within the specified area
                 self.flag = 1
                 self.rotation_camera_activation(False)
                 self.position_marker_camera(self.theta)
                 self.send_goal_position_marker(self.x_goal, self.y_goal, self.theta)
-                self.marker_number += 1
-                print("Target marker is within the specified area.")
-            
+                print("Target marker is within the specified area.")      
             else:
                 print("Target marker is outside the specified area.")
 
@@ -165,6 +165,46 @@ class CameraActionClient(Node):
         frame_with_markers = aruco.drawDetectedMarkers(frame, corners)
         cv2.imshow("Frame with Markers", frame_with_markers)
         cv2.waitKey(0)  
+    
+    # FOLLOW the MARKER with the camera doing the motion
+    def aruco_follow_marker(self):
+        # Capture a frame from the camera
+        ret, frame = self.cap.read()
+
+        # Convert the frame to grayscale
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Define the ArUco dictionary and parameters
+        aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
+        parameters = aruco.DetectorParameters_create()
+
+        # Detect markers in the image
+        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+
+        # Check if marker to detect is in the list of detected markers
+        target_marker_id = self.goal_markers[self.marker_number]
+        
+        if target_marker_id in ids:
+            # Get the index of the target marker in the detected markers list
+            target_marker_index = ids.tolist().index(target_marker_id)
+
+            # Get the corners of the target marker
+            target_marker_corners = corners[target_marker_index][0]
+
+            # Calculate the area of the bounding box around the marker
+            marker_area = cv2.contourArea(target_marker_corners)
+
+            # Define the minimum and maximum allowed area
+            min_area = 400 
+        
+            # Check if the marker area is inside the minimun area and the markers data are updated
+            if min_area < marker_area and self.id_marker == target_marker_id:
+                # Marker is within the specified area
+                self.position_marker_camera(self.theta)
+                print("Target marker is within the specified area.")
+            else:
+                # It's a problem
+                self.position_marker_camera(0)
     
 
 def main(args=None):
