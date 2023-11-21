@@ -62,7 +62,7 @@ class RobotActionClient(Node):
 
         self._action_client.wait_for_server()
 
-        self._send_goal_future = self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
+        #self._send_goal_future = self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
 
         self._send_goal_future.add_done_callback(self.goal_response_callback)
 
@@ -81,7 +81,7 @@ class RobotActionClient(Node):
     # result callback for goal reached 'reached'
     def get_result_callback(self, future):
         result = future.result().result
-        self.get_logger().info('Result: {0}'.format(result.reached))
+        self.get_logger().info('Marker number {0} reached'.format(self.goal_markers[self.marker_number]))
         self.marker_number += 1
         self.flag = 0
 
