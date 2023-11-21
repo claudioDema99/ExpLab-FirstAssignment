@@ -38,6 +38,7 @@ class ControllerLogic(Node):
         self.flag = 0
 
     def execute_callback(self, goal_handle):
+        print("%d", self.theta)
         goal = goal_handle.request
         self.x_goal = goal.x_goal
         self.y_goal = goal.y_goal
@@ -84,10 +85,11 @@ class ControllerLogic(Node):
         self.robot_movement()
 
     def allign_camera(self):
-        if self.theta_goal > self.theta:
-            self.rotate(1)
-        else:
+        diff = (self.theta_goal - self.theta + 6.28) % 6.28
+        if diff > 3.14:  # Half of the maximum range
             self.rotate(-1)
+        else:
+            self.rotate(1)
         if abs(self.theta_goal - self.theta) < 0.2:
             print("1) ROBOT ALLIGNED WITH CAMERA")
             self.stop()
