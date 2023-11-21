@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
                 'controller_logic = assignment_pkg.controller_logic:main',
+                'robot_action_client = assignment_pkg.robot_action_client:main',
         ],
     },
 )
