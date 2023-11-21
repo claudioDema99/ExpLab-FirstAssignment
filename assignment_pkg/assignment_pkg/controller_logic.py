@@ -45,7 +45,7 @@ class ControllerLogic(Node):
         self.get_logger().info('    GOAL: X = "%f" Y = "%f" Theta = "%f"' % (self.x_goal, self.y_goal, self.theta_goal))
         goal_handle.succeed()
         self.robot_movement()
-        if self.flag == 2:
+        if self.flag == 3:
             self.flag = 0
             result = MarkerPosition.Result()
             result.reached = True
@@ -53,6 +53,7 @@ class ControllerLogic(Node):
             return result
 
     def robot_movement(self):
+        cmd_vel = Twist()
         if self.flag == 0:
             self.allign_camera()
         elif self.flag == 1: 
@@ -61,8 +62,7 @@ class ControllerLogic(Node):
             if e_a < 0:
                 e_a = math.pi + (math.pi + e_a)
             lin_control = 0.5 * e_d
-            ang_control = 0.25 * e_a
-            cmd_vel = Twist()
+            ang_control = 0.4 * e_a
             cmd_vel.linear.x = lin_control
             if cmd_vel.linear.x > MAX_VEL:
                 cmd_vel.linear.x = MAX_VEL
@@ -72,7 +72,14 @@ class ControllerLogic(Node):
                 self.flag = 2
                 self.stop()
                 print("2) TARGET REACHED")
-                return
+        elif self.flag == 2:
+            self.flag = 3
+            cmd_vel.linear.x = - MAX_VEL
+            cmd_vel.angular.z = 0.0
+            self.publisher_.publish(cmd_vel)  
+            time.sleep(0.5)
+            self.stop()
+            return
         time.sleep(0.1)
         self.robot_movement()
 
