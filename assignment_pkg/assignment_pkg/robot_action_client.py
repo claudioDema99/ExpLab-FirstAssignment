@@ -2,22 +2,19 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
 from std_msgs.msg import Bool, Float64
-from sensor_msgs.msg import Image
-from custom_action_interfaces_1explab.action import MarkerPosition
 
-import cv2
-from cv2 import aruco
-from cv_bridge import CvBridge
+from custom_action_interfaces_1explab.action import MarkerPosition
 from ros2_aruco_interfaces.msg import ArucoMarkers
 
 import math
+
 
 class RobotActionClient(Node):
 
     def __init__(self):
         super().__init__('robot_action_client')
         # ACTION CLIENT to MOVE the ROBOT
-        self._action_client = ActionClient(self, MarkerPosition, 'controller')
+        self._action_client = ActionClient(self, MarkerPosition, 'robot_controller')
          # SUBSCRIBER TO ARUCO_MARKERS
         self.subscription_aruco = self.create_subscription(
             ArucoMarkers,
@@ -28,15 +25,7 @@ class RobotActionClient(Node):
         # PUBBLISHER TO CAMERA for rotating itself
         self.publisher_camera_onoff = self.create_publisher(Bool, 'camera_on_off', 10)
         # PUBBLISHER TO CAMERA the theta_goal
-        self.publisher_camera_theta = self.create_publisher(Float64, 'camera_theta_goal', 10)
-        # bridge to convert ROS Image type to OpenCV Image type
-        self.bridge = CvBridge()
-        # Subscribe to the camera image topic
-        self.image_sub = self.create_subscription(
-            Image,
-            '/camera/image_raw', 
-            self.image_callback,
-            10)
+        self.publisher_camera_theta = self.create_publisher(Float64, 'camera_theta_goal', 10)  
         # timer for doing the controller logic
         timer_period = 0.1  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -48,6 +37,7 @@ class RobotActionClient(Node):
         self.goal_markers = [11, 12, 13, 15]
         self.marker_number = 0
         self.flag = 0
+        self.flag_marker = 1
         self.cv_image = None
 
     ## TIMER for CONTROLLER the LOGIC ##
@@ -55,9 +45,9 @@ class RobotActionClient(Node):
         if self.flag == 0:
             self.rotation_camera_activation(True)
             # Process the image for ArUco markers and robot motion
-            self.aruco_controller_area(self.cv_image)
+            self.aruco_controller_area()
         elif self.flag == 1:
-            self.aruco_follow_marker(self.cv_image)
+            self.aruco_follow_marker()
         # if the markers are reached go in home position
         if self.marker_number == 4:
             self.flag = 3
@@ -115,64 +105,57 @@ class RobotActionClient(Node):
         
     ## callback for UPDATE the ARUCO MARKER'S INFO ##
     def aruco_callback(self, msg):
-        # take the marker's id and position
-        self.id_marker = msg.marker_ids[0]
-        # take the marker's orientation
-        qx = msg.poses[0].orientation.x
-        qy = msg.poses[0].orientation.y
-        qz = float(msg.poses[0].orientation.z)
-        qw = msg.poses[0].orientation.w
-        roll = math.atan2(2.0*(qx*qy + qw*qz), qw*qw + qx*qx - qy*qy - qz*qz)
-        if roll<0:
-            roll = math.pi + (math.pi + roll)      
-        self.theta = roll
-        # take the marker's position
-        self.x_goal = msg.poses[0].position.x
-        self.y_goal = msg.poses[0].position.y
-    
-    ## callback for UPDATE the IMAGE ##
-    def image_callback(self, data):
-        try:
-            # Convert the ROS image message to OpenCV format
-            self.cv_image = self.bridge.imgmsg_to_cv2(data, 'bgr8')
-        except Exception as e:
-            self.cv_image = None
-
-    # WAIT for the MARKER to be in the AREA and then MOVE the ROBOT to the MARKER with the camera doing the motion 
-    def aruco_controller_area(self, frame):
-        # Check if the frame is empty or not
-        if not frame is None:
-            self.get_logger().warn("Empty frame")
-            return
-
-        # Convert the frame to grayscale
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        # Define the ArUco dictionary and parameters
-        aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
-        parameters = aruco.DetectorParameters_create()
-
-        # Detect markers in the image
-        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-
         # Check if marker to detect is in the list of detected markers
         target_marker_id = self.goal_markers[self.marker_number]
-
-        if ids is not None and target_marker_id in ids:
+        # take the markers's id
+        self.ids_marker = msg.marker_ids
+        # check if the marker is the one we are looking for
+        if target_marker_id in self.ids_marker:
+            self.flag_marker = 0
+            #take the numeber inside the list
+            position_marker = self.ids_marker.tolist().index(target_marker_id)
+            # take the marker's orientation
+            qx = msg.poses[position_marker].orientation.x
+            qy = msg.poses[position_marker].orientation.y
+            qz = float(msg.poses[position_marker].orientation.z)
+            qw = msg.poses[position_marker].orientation.w
+            roll = math.atan2(2.0*(qx*qy + qw*qz), qw*qw + qx*qx - qy*qy - qz*qz)
+            if roll<0:
+                roll = math.pi + (math.pi + roll)      
+            self.theta = roll
+            # take the marker's position
+            self.x_goal = msg.poses[position_marker].position.x
+            self.y_goal = msg.poses[position_marker].position.y
+        else:
+            # if the marker is not in the list we wait and then we check again
+            self.get_logger().info('Marker not found')
+            self.flag_marker = 1
+    
+     
+    # WAIT for the MARKER to be in the AREA and then MOVE the ROBOT to the MARKER with the camera doing the motion 
+    def aruco_controller_area(self):
+        # Check if the callback is looking for the marker we are looking for
+        self.id_marker = self.goal_markers[self.marker_number]
+        # Check if the position of the marker is in the area
+        if self.flag_marker == 0:
             # Get the index of the target marker in the detected markers list
-            target_marker_index = ids.tolist().index(target_marker_id)
-
+            target_marker_index = self.ids_marker.tolist().index(self.id_marker)
             # Get the corners of the target marker
-            target_marker_corners = corners[target_marker_index][0]
-
+            target_marker_corners = []
+            target_marker_corners.append(self.ids_marker[target_marker_index][0])
+            target_marker_corners.append(self.ids_marker[target_marker_index][1])
+            target_marker_corners.append(self.ids_marker[target_marker_index][2])
+            target_marker_corners.append(self.ids_marker[target_marker_index][3])
+                    
             # Calculate the area of the bounding box around the marker
-            marker_area = cv2.contourArea(target_marker_corners)
+            marker_area = self.calculate_rectangle_area(target_marker_corners)
 
             # Define the minimum and maximum allowed area
             min_area = 400  # 20x20 pixels
-
-            # Check if the marker area is inside the minimum area and the markers data are updated
-            if min_area < marker_area and self.id_marker == target_marker_id:
+            treshold = 100  # value to increase the area for the marker to be in the area
+            
+            # Check if the marker area is inside the minimum area 
+            if min_area + treshold < marker_area:
                 # Marker is within the specified area
                 self.flag = 1
                 self.rotation_camera_activation(False)
@@ -181,47 +164,40 @@ class RobotActionClient(Node):
                 print("Target marker is within the specified area.")
             else:
                 print("Target marker is outside the specified area.")
+    
+    def calculate_rectangle_area(self, coordinates):
+        x1, y1 = coordinates[0]
+        x2, y2 = coordinates[1]
+        x3, y3 = coordinates[2]
+        x4, y4 = coordinates[3]
 
-        # Display the frame with detected markers
-        frame_with_markers = aruco.drawDetectedMarkers(frame, corners)
-        cv2.imshow("Frame with Markers", frame_with_markers)
-        cv2.waitKey(1)
+        area = 0.5 * abs((x1*y2 + x2*y3 + x3*y4 + x4*y1) - (y1*x2 + y2*x3 + y3*x4 + y4*x1))
+        return area
+    
     
     # FOLLOW the MARKER with the camera doing the motion
-    def aruco_follow_marker(self, frame):
-        # Check if the frame is empty or not
-        if not frame is None:
-            self.get_logger().warn("Empty frame")
-            return
-        
-        # Convert the frame to grayscale
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        # Define the ArUco dictionary and parameters
-        aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
-        parameters = aruco.DetectorParameters_create()
-
-        # Detect markers in the image
-        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-
-        # Check if marker to detect is in the list of detected markers
-        target_marker_id = self.goal_markers[self.marker_number]
-
-        if ids is not None and target_marker_id in ids:
+    def aruco_follow_marker(self):
+        # Check if the callback is looking for the marker we are looking for
+        self.id_marker = self.goal_markers[self.marker_number]
+        # Check if the position of the marker is in the area
+        if self.flag_marker == 0:
             # Get the index of the target marker in the detected markers list
-            target_marker_index = ids.tolist().index(target_marker_id)
-
+            target_marker_index = self.ids_marker.tolist().index(self.id_marker)
             # Get the corners of the target marker
-            target_marker_corners = corners[target_marker_index][0]
-
+            target_marker_corners = []
+            target_marker_corners.append(self.ids_marker[target_marker_index][0])
+            target_marker_corners.append(self.ids_marker[target_marker_index][1])
+            target_marker_corners.append(self.ids_marker[target_marker_index][2])
+            target_marker_corners.append(self.ids_marker[target_marker_index][3])
+                    
             # Calculate the area of the bounding box around the marker
-            marker_area = cv2.contourArea(target_marker_corners)
+            marker_area = self.calculate_rectangle_area(target_marker_corners)
 
             # Define the minimum and maximum allowed area
             min_area = 400  # 20x20 pixels
-
-            # Check if the marker area is inside the minimum area and the markers data are updated
-            if min_area < marker_area and self.id_marker == target_marker_id:    # Capture a frame from the camera
+            
+            # Check if the marker area is inside the minimum area 
+            if min_area < marker_area:    
                 # Marker is within the specified area
                 self.position_marker_camera(self.theta)
                 print("Target marker is within the specified area.")
