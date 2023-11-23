@@ -1,7 +1,9 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
+from rclpy.executors import MultiThreadedExecutor
 from std_msgs.msg import Bool, Float64
+
 
 from custom_action_interfaces_1explab.action import MarkerPosition
 from ros2_aruco_interfaces.msg import ArucoMarkers
@@ -43,13 +45,16 @@ class RobotActionClient(Node):
     ## TIMER for CONTROLLER the LOGIC ##
     def timer_callback(self):
         if self.flag == 0:
+            print("Camera is rotating,looking for the marker and the robot is waiting")
             self.rotation_camera_activation(True)
             # Process the image for ArUco markers and robot motion
             self.aruco_controller_area()
         elif self.flag == 1:
+            print("Camera is following the marker and the robot is moving")
             self.aruco_follow_marker()
         # if the markers are reached go in home position
         if self.marker_number == 4:
+            print("All the markers are reached, the robot is going in home position")
             self.flag = 3
             self.send_goal_position_marker(0, 0, 0)
             self.position_marker_camera(0)
@@ -201,14 +206,40 @@ class RobotActionClient(Node):
                 self.position_marker_camera(self.theta)
                 print("Target marker is within the specified area.")
             else:
-                # It's a problem
+                # Marker is outside the specified area
                 self.position_marker_camera(0)
+                print("Target marker is outside the specified area. Camera is going to the home position")
     
 
 def main(args=None):
     rclpy.init(args=args)
-
-    action_client = RobotActionClient()
+    try:
+        action_client = RobotActionClient()
+        print("Robot Action Client node has been started")
+        
+        # Create the executor
+        ececuter = MultiThreadedExecutor()
+        
+        # Add the node to the executor
+        ececuter.add_node(action_client)
+        print("Robot Action Client node has been added to the executor")
+        
+        try:
+            while rclpy.ok():
+                ececuter.spin_once()
+        
+        finally:
+            # Destroy the node explicitly
+            print('Destroying node...')
+            ececuter.shutdown()
+            action_client.destroy_node()
+            rclpy.shutdown()
+            
+    except KeyboardInterrupt:
+        # Destroy the node explicitly
+        print('Interrupted by user')
+        action_client.destroy_node()
+        rclpy.shutdown()
 
     rclpy.spin(action_client)
 
