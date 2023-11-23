@@ -130,7 +130,7 @@ class RobotActionClient(Node):
         if target_marker_id in self.ids_marker:
             self.flag_marker = 0
             #take the numeber inside the list
-            position_marker = self.ids_marker.tolist().index(target_marker_id)
+            position_marker = self.ids_marker.index(target_marker_id)
             # take the marker's orientation
             qx = msg.poses[position_marker].orientation.x
             qy = msg.poses[position_marker].orientation.y
@@ -156,7 +156,7 @@ class RobotActionClient(Node):
         # Check if the position of the marker is in the area
         if self.flag_marker == 0:
             # Get the index of the target marker in the detected markers list
-            target_marker_index = self.ids_marker.tolist().index(self.id_marker)
+            target_marker_index = self.ids_marker.index(self.id_marker)
             # Get the corners of the target marker
             target_marker_corners = []
             target_marker_corners.append(self.ids_marker[target_marker_index][0])
@@ -198,7 +198,7 @@ class RobotActionClient(Node):
         # Check if the position of the marker is in the area
         if self.flag_marker == 0:
             # Get the index of the target marker in the detected markers list
-            target_marker_index = self.ids_marker.tolist().index(self.id_marker)
+            target_marker_index = self.ids_marker.index(self.id_marker)
             # Get the corners of the target marker
             target_marker_corners = []
             target_marker_corners.append(self.ids_marker[target_marker_index][0])
