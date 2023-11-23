@@ -131,6 +131,8 @@ class RobotActionClient(Node):
             self.flag_marker = 0
             #take the numeber inside the list
             position_marker = self.ids_marker.index(target_marker_id)
+            # take the info of the marker
+            self.id_marker = msg.marker_ids[position_marker]
             # take the marker's orientation
             qx = msg.poses[position_marker].orientation.x
             qy = msg.poses[position_marker].orientation.y
@@ -151,18 +153,14 @@ class RobotActionClient(Node):
      
     # WAIT for the MARKER to be in the AREA and then MOVE the ROBOT to the MARKER with the camera doing the motion 
     def aruco_controller_area(self):
-        # Check if the callback is looking for the marker we are looking for
-        self.id_marker = self.goal_markers[self.marker_number]
         # Check if the position of the marker is in the area
         if self.flag_marker == 0:
-            # Get the index of the target marker in the detected markers list
-            target_marker_index = self.ids_marker.index(self.id_marker)
             # Get the corners of the target marker
             target_marker_corners = []
-            target_marker_corners.append(self.ids_marker[target_marker_index][0])
-            target_marker_corners.append(self.ids_marker[target_marker_index][1])
-            target_marker_corners.append(self.ids_marker[target_marker_index][2])
-            target_marker_corners.append(self.ids_marker[target_marker_index][3])
+            target_marker_corners.append(self.ids_marker[0][0])
+            target_marker_corners.append(self.ids_marker[0][1])
+            target_marker_corners.append(self.ids_marker[0][2])
+            target_marker_corners.append(self.ids_marker[0][3])
                     
             # Calculate the area of the bounding box around the marker
             marker_area = self.calculate_rectangle_area(target_marker_corners)
@@ -193,18 +191,17 @@ class RobotActionClient(Node):
     
     # FOLLOW the MARKER with the camera doing the motion
     def aruco_follow_marker(self):
-        # Check if the callback is looking for the marker we are looking for
-        self.id_marker = self.goal_markers[self.marker_number]
-        # Check if the position of the marker is in the area
+       # Check if the position of the marker is in the area
         if self.flag_marker == 0:
-            # Get the index of the target marker in the detected markers list
-            target_marker_index = self.ids_marker.index(self.id_marker)
             # Get the corners of the target marker
             target_marker_corners = []
-            target_marker_corners.append(self.ids_marker[target_marker_index][0])
-            target_marker_corners.append(self.ids_marker[target_marker_index][1])
-            target_marker_corners.append(self.ids_marker[target_marker_index][2])
-            target_marker_corners.append(self.ids_marker[target_marker_index][3])
+            target_marker_corners.append(self.ids_marker[0][0])
+            target_marker_corners.append(self.ids_marker[0][1])
+            target_marker_corners.append(self.ids_marker[0][2])
+            target_marker_corners.append(self.ids_marker[0][3])
+                    
+            # Calculate the area of the bounding box around the marker
+            marker_area = self.calculate_rectangle_area(target_marker_corners)
                     
             # Calculate the area of the bounding box around the marker
             marker_area = self.calculate_rectangle_area(target_marker_corners)
