@@ -174,7 +174,6 @@ class RobotActionClient(Node):
         area = 0.5 * abs((x1*y2 + x2*y3 + x3*y4 + x4*y1) - (y1*x2 + y2*x3 + y3*x4 + y4*x1))
         return area
     
-    
     # FOLLOW the MARKER with the camera doing the motion
     def aruco_follow_marker(self):
         # Check if the callback is looking for the marker we are looking for
