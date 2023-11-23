@@ -9,6 +9,7 @@ from custom_action_interfaces_1explab.action import MarkerPosition
 from ros2_aruco_interfaces.msg import ArucoMarkers
 
 import math
+import numpy as np 
 
 
 class RobotActionClient(Node):
@@ -71,6 +72,17 @@ class RobotActionClient(Node):
         #self._send_goal_future = self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
 
         self._send_goal_future.add_done_callback(self.goal_response_callback)
+        
+    
+    def calculate_relative_translation(self, T_machine, T_camera):
+        # Convert translation vectors to numpy arrays for easier manipulation
+        translation_machine = np.array(T_machine[:3])
+        translation_camera = np.array(T_camera[:3])
+
+        # Calculate relative translation
+        relative_translation = translation_machine - translation_camera
+
+        return relative_translation
 
     # callback for checking if the info goal is reached
     def goal_response_callback(self, future):
