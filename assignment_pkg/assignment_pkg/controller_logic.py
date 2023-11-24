@@ -6,7 +6,7 @@ from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.action import ActionServer
 from action_msgs.msg import GoalStatus
-from my_interface.action import MarkerPosition
+from custom_action_interfaces_1explab.action import MarkerPosition
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
 
