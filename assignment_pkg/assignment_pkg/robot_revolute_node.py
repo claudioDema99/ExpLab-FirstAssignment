@@ -12,6 +12,7 @@ class RobotController(Node):
 
     target = Bool()
     target.data = False
+    sign = 1
 
     def __init__(self):
         super().__init__("robot_revolute_node")
@@ -61,18 +62,27 @@ class RobotController(Node):
     # Control loop cycle callback
     def camera_modality_callback(self, msg: Bool):
         if msg.data == True: ## if the camera is on, the camera should rotate
-            # Incrementally increase the target angle
-            self.current_angle.data += 0.01
 
-            if self.current_angle.data == 6.28:
-                self.current_angle.data = 0.0
+
+            # Incrementally increase the target angle
+            self.current_angle.data += 0.01 * self.sign
+
+            self.current_angle.data = round(self.current_angle.data, 3)
+
+            if (self.current_angle.data == 6.28) or (self.current_angle.data == 0.0):
+                self.sign = self.sign * (-1)
+                self.get_logger().info("Inverting Rotation...")
+
             # Publish command to rotate the joint
             cmd_msg = Float64MultiArray()
             cmd_msg.data = [self.current_angle.data]
             self.cmd_vel_pub.publish(cmd_msg)
+            self.get_logger().info('(Sign: {0})'.format(self.sign))
+            self.get_logger().info(' (Current_angle: {0})'.format(self.current_angle.data))
+
 
             # Log the current angle
-            self.get_logger().info("Camera is rotating...")
+            #self.get_logger().info("Camera is rotating...")
         else:
             self.get_logger().info("Target selected, keeping an eye on it..")
 
