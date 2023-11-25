@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
 from rclpy.executors import MultiThreadedExecutor
-from std_msgs.msg import Bool, Float64
+from std_msgs.msg import Bool, Float64, Float32MultiArray
 
 
 from custom_action_interfaces_1explab.action import MarkerPosition
@@ -24,6 +24,12 @@ class RobotActionClient(Node):
             'aruco_markers',
             self.aruco_callback,
             10)
+        # SUBSCRIBER TO CORNERS OF THE MARKER
+        self.subscription_corners = self.create_subscription(
+            Float32MultiArray,
+            'aruco_corners',
+            self.corners_callback,
+            10)
         self.subscription_aruco  # prevent unused variable warning
         # PUBBLISHER TO CAMERA for rotating itself
         self.publisher_camera_onoff = self.create_publisher(Bool, 'camera_on_off', 10)
@@ -37,25 +43,28 @@ class RobotActionClient(Node):
         self.x_goal = 0
         self.y_goal = 0
         self.id_marker = 0
+        self.position_marker = 0
+        self.corners_marker = []
         self.goal_markers = [11, 12, 13, 15]
-        self.marker_number = 0
+        self.reached_marker = 0
         self.flag = 0
         self.flag_marker = 1
-        self.cv_image = None
+        
 
     ## TIMER for CONTROLLER the LOGIC ##
     def timer_callback(self):
+        self.id_marker = self.goal_markers[self.reached_marker]
         if self.flag == 0:
-            print("Camera is rotating,looking for the marker and the robot is waiting")
+            self.get_logger().info("Camera is rotating,looking for the marker and the robot is waiting")
             self.rotation_camera_activation(True)
             # Process the image for ArUco markers and robot motion
             self.aruco_controller_area()
         elif self.flag == 1:
-            print("Camera is following the marker and the robot is moving")
+            self.get_logger().info("Camera is following the marker and the robot is moving")
             self.aruco_follow_marker()
         # if the markers are reached go in home position
-        if self.marker_number == 4:
-            print("All the markers are reached, the robot is going in home position")
+        if self.reached_marker == 4:
+            self.get_logger().info("All the markers are reached, the robot is going in home position")
             self.flag = 3
             self.send_goal_position_marker(0, 0, 0)
             self.position_marker_camera(0)
@@ -68,9 +77,7 @@ class RobotActionClient(Node):
         goal_msg.theta_goal = theta
 
         self._action_client.wait_for_server()
-
         #self._send_goal_future = self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
-
         self._send_goal_future.add_done_callback(self.goal_response_callback)
         
     
@@ -100,7 +107,7 @@ class RobotActionClient(Node):
     def get_result_callback(self, future):
         result = future.result().result
         self.get_logger().info('Marker number {0} reached'.format(self.goal_markers[self.marker_number]))
-        self.marker_number += 1
+        self.reached_marker += 1
         self.flag = 0
 
     # feedback callback we aren't using it
@@ -122,48 +129,52 @@ class RobotActionClient(Node):
         
     ## callback for UPDATE the ARUCO MARKER'S INFO ##
     def aruco_callback(self, msg):
-        # Check if marker to detect is in the list of detected markers
-        target_marker_id = self.goal_markers[self.marker_number]
         # take the markers's id
         self.ids_marker = msg.marker_ids
         # check if the marker is the one we are looking for
-        if target_marker_id in self.ids_marker:
+        if self.id_marker in self.ids_marker:
+            self.get_logger().info('Marker {0} found'.format(self.id_marker))
             self.flag_marker = 0
             #take the numeber inside the list
-            position_marker = self.ids_marker.index(target_marker_id)
-            # take the info of the marker
-            self.id_marker = msg.marker_ids[position_marker]
+            self.position_marker = self.ids_marker.index(self.id_marker)
             # take the marker's orientation
-            qx = msg.poses[position_marker].orientation.x
-            qy = msg.poses[position_marker].orientation.y
-            qz = float(msg.poses[position_marker].orientation.z)
-            qw = msg.poses[position_marker].orientation.w
+            qx = msg.poses[self.position_marker].orientation.x
+            qy = msg.poses[self.position_marker].orientation.y
+            qz = float(msg.poses[self.position_marker].orientation.z)
+            qw = msg.poses[self.position_marker].orientation.w
             roll = math.atan2(2.0*(qx*qy + qw*qz), qw*qw + qx*qx - qy*qy - qz*qz)
             if roll<0:
                 roll = math.pi + (math.pi + roll)      
             self.theta = roll
             # take the marker's position
-            self.x_goal = msg.poses[position_marker].position.x
-            self.y_goal = msg.poses[position_marker].position.y
+            self.x_goal = msg.poses[self.position_marker].position.x
+            self.y_goal = msg.poses[self.position_marker].position.y
+            
         else:
             # if the marker is not in the list we wait and then we check again
             self.get_logger().info('Marker not found')
             self.flag_marker = 1
     
+    ## callback for UPDATE the CORNERS of the ARUCO MARKER ##
+    def corners_callback(self, msg):
+        self.corners_marker = msg.data
+        if self.flag_marker == 0:
+            # take the marker's corners
+            self.corners_marker.append(msg.corners[self.position_marker*4 + 0])
+            self.corners_marker.append(msg.corners[self.position_marker*4 + 1])
+            self.corners_marker.append(msg.corners[self.position_marker*4 + 2])
+            self.corners_marker.append(msg.corners[self.position_marker*4 + 3])
+            self.get_logger().info('Corners marker {0} found'.format(self.id_marker))
+        else:
+            self.corners_marker = []
+            self.get_logger().info('Marker not found')
      
     # WAIT for the MARKER to be in the AREA and then MOVE the ROBOT to the MARKER with the camera doing the motion 
     def aruco_controller_area(self):
         # Check if the position of the marker is in the area
-        if self.flag_marker == 0:
-            # Get the corners of the target marker
-            target_marker_corners = []
-            target_marker_corners.append(self.ids_marker[0][0])
-            target_marker_corners.append(self.ids_marker[0][1])
-            target_marker_corners.append(self.ids_marker[0][2])
-            target_marker_corners.append(self.ids_marker[0][3])
-                    
+        if self.flag_marker == 0:                    
             # Calculate the area of the bounding box around the marker
-            marker_area = self.calculate_rectangle_area(target_marker_corners)
+            marker_area = self.calculate_rectangle_area(self.corners_marker)
 
             # Define the minimum and maximum allowed area
             min_area = 400  # 20x20 pixels
@@ -176,9 +187,9 @@ class RobotActionClient(Node):
                 self.rotation_camera_activation(False)
                 self.position_marker_camera(self.theta)
                 self.send_goal_position_marker(self.x_goal, self.y_goal, self.theta)
-                print("Target marker is within the specified area.")
+                self.get_logger().info("Target marker is within the specified area.")
             else:
-                print("Target marker is outside the specified area.")
+                self.get_logger().info("Target marker is outside the specified area.")
     
     def calculate_rectangle_area(self, coordinates):
         x1, y1 = coordinates[0]
@@ -192,19 +203,9 @@ class RobotActionClient(Node):
     # FOLLOW the MARKER with the camera doing the motion
     def aruco_follow_marker(self):
        # Check if the position of the marker is in the area
-        if self.flag_marker == 0:
-            # Get the corners of the target marker
-            target_marker_corners = []
-            target_marker_corners.append(self.ids_marker[0][0])
-            target_marker_corners.append(self.ids_marker[0][1])
-            target_marker_corners.append(self.ids_marker[0][2])
-            target_marker_corners.append(self.ids_marker[0][3])
-                    
+        if self.flag_marker == 0:                    
             # Calculate the area of the bounding box around the marker
-            marker_area = self.calculate_rectangle_area(target_marker_corners)
-                    
-            # Calculate the area of the bounding box around the marker
-            marker_area = self.calculate_rectangle_area(target_marker_corners)
+            marker_area = self.calculate_rectangle_area(self.corners_marker)
 
             # Define the minimum and maximum allowed area
             min_area = 400  # 20x20 pixels
@@ -213,11 +214,11 @@ class RobotActionClient(Node):
             if min_area < marker_area:    
                 # Marker is within the specified area
                 self.position_marker_camera(self.theta)
-                print("Target marker is within the specified area.")
-            else:
-                # Marker is outside the specified area
-                self.position_marker_camera(0)
-                print("Target marker is outside the specified area. Camera is going to the home position")
+                self.get_logger().info("Target marker is within the specified area.")
+        else:
+            # Marker is outside of the camera's field of view
+            self.position_marker_camera(0)
+            self.get_logger().info("Target marker is outside the cameras' range. Camera is going to the home position")
     
 
 def main(args=None):
