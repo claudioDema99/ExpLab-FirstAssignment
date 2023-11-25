@@ -152,22 +152,23 @@ class RobotActionClient(Node):
             
         else:
             # if the marker is not in the list we wait and then we check again
-            self.get_logger().info('Marker not found')
+            #self.get_logger().info('Marker not found')
             self.flag_marker = 1
     
     ## callback for UPDATE the CORNERS of the ARUCO MARKER ##
     def corners_callback(self, msg):
-        self.corners_marker = msg.data
         if self.flag_marker == 0:
             # take the marker's corners
-            self.corners_marker.append(msg.corners[self.position_marker*4 + 0])
-            self.corners_marker.append(msg.corners[self.position_marker*4 + 1])
-            self.corners_marker.append(msg.corners[self.position_marker*4 + 2])
-            self.corners_marker.append(msg.corners[self.position_marker*4 + 3])
-            self.get_logger().info('Corners marker {0} found'.format(self.id_marker))
+            big_data_corners = msg.data
+            
+            self.corners_marker.append([big_data_corners[0+self.position_marker*8], big_data_corners[1+self.position_marker*8]])
+            self.corners_marker.append([big_data_corners[2+self.position_marker*8], big_data_corners[3+self.position_marker*8]])
+            self.corners_marker.append([big_data_corners[4+self.position_marker*8], big_data_corners[5+self.position_marker*8]])
+            self.corners_marker.append([big_data_corners[6+self.position_marker*8], big_data_corners[7+self.position_marker*8]])   
+            self.get_logger().info('Corners: {0}'.format(self.corners_marker))
         else:
             self.corners_marker = []
-            self.get_logger().info('Marker not found')
+            #self.get_logger().info('Marker not found')
      
     # WAIT for the MARKER to be in the AREA and then MOVE the ROBOT to the MARKER with the camera doing the motion 
     def aruco_controller_area(self):
@@ -175,6 +176,7 @@ class RobotActionClient(Node):
         if self.flag_marker == 0:                    
             # Calculate the area of the bounding box around the marker
             marker_area = self.calculate_rectangle_area(self.corners_marker)
+            self.get_logger().info('Marker area: {0}'.format(marker_area))
 
             # Define the minimum and maximum allowed area
             min_area = 400  # 20x20 pixels
