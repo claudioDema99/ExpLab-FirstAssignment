@@ -4,7 +4,6 @@ from rclpy.action import ActionClient
 from rclpy.executors import MultiThreadedExecutor
 from std_msgs.msg import Bool, Float64, Float32MultiArray
 
-
 from custom_action_interfaces_1explab.action import MarkerPosition
 from ros2_aruco_interfaces.msg import ArucoMarkers
 
