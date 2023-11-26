@@ -36,7 +36,8 @@ class RobotController(Node):
 
         self.theta_goal = 0.0
 
-        
+        self.modality_timer = self.create_timer(self.dt, self.camera_modality) # Timer to check the modality of the camera, created at the beginning to avoid errors
+
 
         self.theta_goal = 0.0  
 
@@ -76,9 +77,11 @@ class RobotController(Node):
             self.theta_goal = msg.data
             self.target.data = True  # I don't need to receive another target yet
 
+
     def camera_modality_callback(self, msg: Bool):
             self.modality.data = msg.data
-            self.modality_timer = self.create_timer(self.dt, self.camera_modality)
+            self.get_logger().warn("Camera modality from callback is: {0})".format(self.modality.data))
+            
             
 
 
@@ -86,9 +89,9 @@ class RobotController(Node):
     def camera_modality(self):
 
         self.get_logger().info("Camera modality is: {0})".format(self.modality.data))
-        if self.modality.data == False: 
+        if self.modality.data == True: #Camera is rotating 
 
-            time.sleep(0.1)
+            #time.sleep(0.1)
             # Incrementally increase the target angle
             self.current_angle.data += 0.01 * self.sign
 
@@ -109,7 +112,7 @@ class RobotController(Node):
             # Log the current angle
             self.get_logger().info("Camera is rotating...")
 
-        else:
+        elif self.modality.data == False:
             self.ready.data = True
             if self.target.data == True:
                 self.ang_pid.setpoint = self.theta_goal
@@ -118,11 +121,12 @@ class RobotController(Node):
                 self.get_logger().info("Target selected, keeping an eye on it..")
                 self.target.data = False
                 self.timer = self.create_timer(self.dt, self.control_loop_callback)
+
+        else:
+            self.get_logger().error("Something went wrong with the camera modality" )
             
             
         
-
-        #self.get_logger().info("Camera is waiting to recieve the target..")
 
 
 
