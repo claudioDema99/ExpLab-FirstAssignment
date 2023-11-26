@@ -95,7 +95,7 @@ class RobotController(Node):
 
             self.current_angle.data = round(self.current_angle.data, 3)
 
-            if (self.current_angle.data == 6.28) or (self.current_angle.data == 0.0):
+            if (self.current_angle.data == -3.14) or (self.current_angle.data == 3.14):
                 self.sign = self.sign * (-1)
                 #self.get_logger().info("Inverting Rotation...")
 
