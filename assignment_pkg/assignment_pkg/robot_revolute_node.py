@@ -31,6 +31,8 @@ class RobotController(Node):
         self.modality = Bool()
         self.modality.data = False
         
+        self.waypoint_reached = Bool()
+        self.waypoint_reached.data = False
 
         self.sign = 1
 
@@ -89,6 +91,8 @@ class RobotController(Node):
         #self.get_logger().info("Camera modality is: {0})".format(self.modality.data))
         if self.modality.data == True: #Camera is rotating 
 
+            self.waypoint_reached.data = True
+
             #time.sleep(0.1)
             # Incrementally increase the target angle
             self.current_angle.data += 0.01 * self.sign
@@ -113,6 +117,7 @@ class RobotController(Node):
         elif self.modality.data == False:
 
             self.ready.data = True #Useless, but I keep it for clarity
+            self.waypoint_reached.data = False
 
             if self.target.data == True:
                 self.ang_pid.sample_time = self.dt
@@ -136,8 +141,12 @@ class RobotController(Node):
             
     
 
-    # Control loop cycle callback
+    # Control loop cycle callback, it is called every dt seconds and it works if waypoint_reached is False
     def control_loop_callback(self):
+
+        if self.waypoint_reached.data == True:
+            #self.get_logger().error("Waypoint reached, waiting for a new target..")
+            return
         
         # Compute remaining errors
         ang_error = abs(self.current_angle.data - self.ang_pid.setpoint)
@@ -170,13 +179,12 @@ class RobotController(Node):
         # If pose reached, exit the loop
         if ang_error < self.ang_threshold:
             self.get_logger().info('Waypoint reached')
-            self.timer.cancel()
+            self.waypoint_reached.data = True
+            return
             
             
 
     
-
-        
 
 
 def main(args=None):
