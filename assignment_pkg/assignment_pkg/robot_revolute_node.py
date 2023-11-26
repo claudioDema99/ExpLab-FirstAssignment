@@ -7,12 +7,11 @@ from std_msgs.msg import Float64, Bool, Float64MultiArray
 from geometry_msgs.msg import Twist
 from rclpy.executors import MultiThreadedExecutor
 
+import time
+
 
 class RobotController(Node):
 
-    target = Bool()
-    target.data = False
-    sign = 1
 
     def __init__(self):
         super().__init__("robot_revolute_node")
@@ -21,11 +20,29 @@ class RobotController(Node):
         self.current_angle = Float64()
         self.current_angle.data = 0.0
 
+        self.target = Bool()
+        self.target.data = False  # True if a new target has been received
 
-        self.dt = 0.05
+        self.ready = Bool()
+        self.ready.data = False   # True if the PID is ready to control the robot
+
+        self.dt = 0.1
+
+        self.modality = Bool()
+        self.modality.data = False
+        
+
+        self.sign = 1
+
+        self.theta_goal = 0.0
+
+        self.modality_timer = self.create_timer(self.dt, self.camera_modality) # Timer to check the modality of the camera, created at the beginning to avoid errors
+
+
+        self.theta_goal = 0.0  
 
         # Define PID controllers for linear velocity and rotation
-        self.ang_pid = PID(30.0, 2, 7.5)
+        self.ang_pid = PID(0.5, 0.01, 0.1)
         
         # Controllers update frequency (equivalent to publisher rate)
         self.ang_pid.sample_time = self.dt
@@ -48,22 +65,31 @@ class RobotController(Node):
 
 
 
-
-
     # I receive the theta_goal from the camera and I store it in a variable
     def camera_theta_callback(self, msg: Float64):
 
-        if self.target.data == True:
-            self.get_logger().info('Received new target orientation (Theta: {0})'.format(msg.data))
+        #self.get_logger().info("Target.data is: {0})".format(self.target.data))
+        if self.ready.data == True:  # it is True if a goal target has been received, Useless, but I keep it for clarity
+            self.get_logger().error('Received new target orientation (Theta: {0})'.format(msg.data))
             # Store new target orientation (goal)
             self.theta_goal = msg.data
-            self.target.data = False
+            self.target.data = True  # I don't need to receive another target yet
+
+
+    def camera_modality_callback(self, msg: Bool):
+            self.modality.data = msg.data
+            #self.get_logger().warn("Camera modality from callback is: {0})".format(self.modality.data))
+            
+            
+
 
     # Control loop cycle callback
-    def camera_modality_callback(self, msg: Bool):
-        if msg.data == True: ## if the camera is on, the camera should rotate
+    def camera_modality(self):
 
+        #self.get_logger().info("Camera modality is: {0})".format(self.modality.data))
+        if self.modality.data == True: #Camera is rotating 
 
+            #time.sleep(0.1)
             # Incrementally increase the target angle
             self.current_angle.data += 0.01 * self.sign
 
@@ -71,79 +97,86 @@ class RobotController(Node):
 
             if (self.current_angle.data == 6.28) or (self.current_angle.data == 0.0):
                 self.sign = self.sign * (-1)
-                self.get_logger().info("Inverting Rotation...")
+                #self.get_logger().info("Inverting Rotation...")
 
             # Publish command to rotate the joint
             cmd_msg = Float64MultiArray()
             cmd_msg.data = [self.current_angle.data]
             self.cmd_vel_pub.publish(cmd_msg)
-            self.get_logger().info('(Sign: {0})'.format(self.sign))
-            self.get_logger().info(' (Current_angle: {0})'.format(self.current_angle.data))
+            #self.get_logger().info('(Sign: {0})'.format(self.sign))
+            self.get_logger().info(' (Current_angle of rotation: {0})'.format(self.current_angle.data))
 
 
             # Log the current angle
-            #self.get_logger().info("Camera is rotating...")
-        else:
-            self.get_logger().info("Target selected, keeping an eye on it..")
+            self.get_logger().info("Camera is rotating...")
 
-            self.target.data = True
+        elif self.modality.data == False:
 
-            # Set new PID setpoints for orientation
-            self.ang_pid.setpoint = self.theta  
+            self.ready.data = True #Useless, but I keep it for clarity
 
-            # Reset PID internals to clear previous errors
-            self.ang_pid.reset()
-
-            # Start timer for control loop callback
-            self.timer = self.create_timer(self.dt, self.control_loop_callback)
-
+            if self.target.data == True:
+                self.ang_pid.sample_time = self.dt
+                self.ang_pid.setpoint = self.theta_goal
+                # Reset PID internals to clear previous errors
+                self.ang_pid.reset()
+                self.get_logger().warn("Target selected, keeping an eye on it..")
+                self.target.data = False
+                self.timer = self.create_timer(self.dt, self.control_loop_callback)
             
-            '''
-            #self.timer = self.create_timer(self.dt, self.control_loop_callback)
-            while (msg.data == False):
+            else:
+                print('Searching...')
+                #self.get_logger().error("Camera has stopped its rotation but target is not selected yet, waiting for a target..")
+                # Per un problema probabilmente di diverse sequenze di esecuzione tra programma e timer, ogni tanto il programma stampa
+                # questo messaggio anche se il target è stato selezionato, ma non è un problema perchè il programma funziona lo stesso
 
-                # Compute remaining errors
-                self.ang_error = abs(msg.data - self.ang_pid.setpoint)
-
-                # Compute rotation control based on target rotation
-                ang_control = self.ang_pid(self.current_angle.data) * self.dt
-                # Publish command velocity message
-                cmd_vel = Twist()
-                cmd_vel.angular.z = ang_control
-                self.cmd_vel_pub.publish(cmd_vel)
-            '''
-                
-
+        else:
+            self.get_logger().error("Something went wrong with the camera modality" )
+            
+            
             
     
 
     # Control loop cycle callback
     def control_loop_callback(self):
-        rate = self.create_rate(1 / self.dt)
+        
+        # Compute remaining errors
+        ang_error = abs(self.current_angle.data - self.ang_pid.setpoint)
 
-        while not self.destroyed and not self.get_clock().is_shutdown():
-            # Compute remaining errors
-            ang_error = abs(self.current_angle.data - self.ang_pid.setpoint)
 
-            self.get_logger().info("Remaining error: (rotation: {0})".format(ang_error))
+        ## Debug
+        print()
+        print("inizio calcolo PID")
+        #self.get_logger().info("Current Angle: {0})".format(self.current_angle.data))
+        self.get_logger().info("Theta goal: {0})".format(self.ang_pid.setpoint))
+        #self.get_logger().info("Remaining error: {0})".format(ang_error))
 
-            # Compute rotation control based on the target rotation
-            ang_control = self.ang_pid(self.current_angle.data) * self.dt
 
-            # Update the current angle based on the PID control
-            self.current_angle.data += ang_control
+       
+        # Compute rotation control based on the target rotation
+        ang_control = np.clip(self.ang_pid(self.current_angle.data) * self.dt, -0.5, 0.5)
+        #self.get_logger().warn(" Angle control is: {0}".format(ang_control))
 
-            # Publish command velocity message
-            cmd_msg = Float64MultiArray()
-            cmd_msg.data = [self.current_angle.data]
-            self.cmd_vel_pub.publish(cmd_msg)
 
-            # If pose reached, exit the loop
-            if ang_error < self.ang_threshold:
-                self.get_logger().info('Waypoint reached')
-                break
+        # Update the current angle based on the PID control
+        self.current_angle.data += ang_control
+        self.get_logger().warn(" Current angle is: {0}".format(self.current_angle.data))
 
-            rate.sleep()
+    
+        # Publish command velocity message
+        cmd_msg = Float64MultiArray()
+        cmd_msg.data = [self.current_angle.data]
+        self.cmd_vel_pub.publish(cmd_msg)
+
+        # If pose reached, exit the loop
+        if ang_error < self.ang_threshold:
+            self.get_logger().info('Waypoint reached')
+            self.timer.cancel()
+            
+            
+
+    
+
+        
 
 
 def main(args=None):
