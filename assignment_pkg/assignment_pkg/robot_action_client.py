@@ -49,21 +49,22 @@ class RobotActionClient(Node):
         self.flag = 0
         self.flag_marker = 1
         
-
+        
     ## TIMER for CONTROLLER the LOGIC ##
     def timer_callback(self):
+        # take the marker's id to reach and find
         self.id_marker = self.goal_markers[self.reached_marker]
         if self.flag == 0:
-            self.get_logger().info("Camera is rotating,looking for the marker and the robot is waiting")
+            self.get_logger().info("Camera is rotating, the robot is waiting")
             self.rotation_camera_activation(True)
             # Process the image for ArUco markers and robot motion
             self.aruco_controller_area()
         elif self.flag == 1:
-            self.get_logger().info("Camera is following the marker and the robot is moving")
+            self.get_logger().info("Camera is following the marker, the robot is moving")
             self.aruco_follow_marker()
         # if the markers are reached go in home position
         if self.reached_marker == 4:
-            self.get_logger().info("All the markers are reached, the robot is going in home position")
+            self.get_logger().info("All markers are reached")
             self.flag = 3
             self.send_goal_position_marker(0, 0, 0)
             self.position_marker_camera(0)
@@ -143,7 +144,8 @@ class RobotActionClient(Node):
             qw = msg.poses[self.position_marker].orientation.w
             roll = math.atan2(2.0*(qx*qy + qw*qz), qw*qw + qx*qx - qy*qy - qz*qz)
             if roll<0:
-                roll = math.pi + (math.pi + roll)      
+                roll = math.pi + (math.pi + roll)  
+            # take the marker's orientation    
             self.theta = roll
             # take the marker's position
             self.x_goal = msg.poses[self.position_marker].position.x
@@ -159,11 +161,12 @@ class RobotActionClient(Node):
         if self.flag_marker == 0:
             # take the marker's corners
             big_data_corners = msg.data
-            
-            self.corners_marker.append([big_data_corners[0+self.position_marker*8], big_data_corners[1+self.position_marker*8]])
-            self.corners_marker.append([big_data_corners[2+self.position_marker*8], big_data_corners[3+self.position_marker*8]])
-            self.corners_marker.append([big_data_corners[4+self.position_marker*8], big_data_corners[5+self.position_marker*8]])
-            self.corners_marker.append([big_data_corners[6+self.position_marker*8], big_data_corners[7+self.position_marker*8]])   
+            # put empty the list
+            self.corners_marker = []
+            # take the corners and put them in a list
+            for i in range(8):
+                self.corners_marker.append([big_data_corners[i], big_data_corners[i+1]])
+                
             self.get_logger().info('Corners: {0}'.format(self.corners_marker))
         else:
             self.corners_marker = []
@@ -179,7 +182,7 @@ class RobotActionClient(Node):
 
             # Define the minimum and maximum allowed area
             min_area = 400  # 20x20 pixels
-            treshold = 100  # value to increase the area for the marker to be in the area
+            treshold = 50  # value to increase the area for the marker to be in the area
             
             # Check if the marker area is inside the minimum area 
             if min_area + treshold < marker_area:
@@ -187,18 +190,24 @@ class RobotActionClient(Node):
                 self.flag = 1
                 self.rotation_camera_activation(False)
                 self.position_marker_camera(self.theta)
+                #self.get_logger().info("x_goal: {0}, y_goal: {1}, theta: {2}".format(self.x_goal, self.y_goal, self.theta))
+                #self.get_logger().info("Theta type: {0}".format(type(self.theta)))
                 self.send_goal_position_marker(self.x_goal, self.y_goal, self.theta)
-                self.get_logger().info("Target marker is within the specified area.")
+                self.get_logger().info("Area has the target.")
             else:
-                self.get_logger().info("Target marker is outside the specified area.")
+                self.get_logger().info("Target marker is outside.")
     
     def calculate_rectangle_area(self, coordinates):
-        x1, y1 = coordinates[0]
-        x2, y2 = coordinates[1]
-        x3, y3 = coordinates[2]
-        x4, y4 = coordinates[3]
-
-        area = 0.5 * abs((x1*y2 + x2*y3 + x3*y4 + x4*y1) - (y1*x2 + y2*x3 + y3*x4 + y4*x1))
+        # Calculate the area of the bounding box around the marker
+        x1 = coordinates[0]
+        x2 = coordinates[2]
+        x3 = coordinates[4]
+        x4 = coordinates[6]
+        y1 = coordinates[1]
+        y2 = coordinates[3]
+        y3 = coordinates[5]
+        y4 = coordinates[7]
+        area = 0.5 * abs((x1[0]*y2[0] + x2[0]*y3[0] + x3[0]*y4[0] + x4[0]*y1[0]) - (y1[0]*x2[0] + y2[0]*x3[0] + y3[0]*x4[0] + y4[0]*x1[0]))
         return area
     
     # FOLLOW the MARKER with the camera doing the motion
