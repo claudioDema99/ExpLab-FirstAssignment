@@ -100,7 +100,7 @@ class RobotController(Node):
 
             self.current_angle.data = round(self.current_angle.data, 3)
 
-            if (self.current_angle.data == -3.14) or (self.current_angle.data == 3.14):
+            if (self.current_angle.data == 0.0) or (self.current_angle.data == 6.28):
                 self.sign = self.sign * (-1)
                 #self.get_logger().info("Inverting Rotation...")
 
@@ -109,7 +109,7 @@ class RobotController(Node):
             cmd_msg.data = [self.current_angle.data]
             self.cmd_vel_pub.publish(cmd_msg)
             #self.get_logger().info('(Sign: {0})'.format(self.sign))
-            #self.get_logger().info(' (Current_angle of rotation: {0})'.format(self.current_angle.data))
+            #self.get_logger().info(' (Current_angleđ of rotation: {0})'.format(self.current_angle.data))
 
 
             # Log the current angle
@@ -169,12 +169,12 @@ class RobotController(Node):
 
 
         # Update the current angle based on the PID control
-        if self.current_angle.data > 3.13:
-            self.current_angle.data = 3.13
+        if self.current_angle.data > 6.27:
+            self.current_angle.data = 6.27
             self.get_logger().error('Angle is too much')
             
-        elif self.current_angle.data < -3.13:
-            self.current_angle.data = -3.13
+        elif self.current_angle.data < 0.1:
+            self.current_angle.data = 0.1
             self.get_logger().error('Angle is too low')
             
         self.current_angle.data += ang_control
@@ -190,6 +190,10 @@ class RobotController(Node):
             self.waypoint_reached.data = True
             return
             
+            
+
+    
+
 
 def main(args=None):
     rclpy.init(args=args)
