@@ -1,7 +1,7 @@
 # Experimental Robotics Laboratory - Assignment 1
 
-C. Demaria (s5433737)
-G. Galvagni (s)
+C. Demaria (s5433737)  
+G. Galvagni (s)  
 E. Piacenti (s)
 
 ## Description
@@ -27,7 +27,7 @@ The robot used in this simulation has been appropriately modified as illustrated
 
 
 
-## The custom message and action
+## Custom message and action
 
 
 ## Install and run
