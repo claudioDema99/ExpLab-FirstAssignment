@@ -190,10 +190,6 @@ class RobotController(Node):
             self.waypoint_reached.data = True
             return
             
-            
-
-    
-
 
 def main(args=None):
     rclpy.init(args=args)
