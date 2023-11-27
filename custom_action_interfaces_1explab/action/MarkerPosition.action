@@ -7,3 +7,4 @@ float64 theta_goal
 bool reached
 ---
 # Feedback
+float64 distance_to_goal
