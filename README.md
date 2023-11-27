@@ -6,8 +6,7 @@ E. Piacenti (s)
 
 ## Description
 
-In this assignment, we are going to use **ROS2** in order to control a mobile robot in a 3D simulation environment called *Gazebo*. 
-We have the robot starting in the position (0, 0), and four markers with IDs 11, 12, 13, and 15. 
+In this assignment, we are going to use **ROS2** in order to control a mobile robot in a 3D simulation environment called *Gazebo*.  We have the robot starting in the position (0, 0), and four markers with IDs 11, 12, 13, and 15. 
 The markers have the following meanings:
 Marker 11 -> rotate until you find marker 12; then reach marker 12
 Marker 12 -> rotate until you find marker 13; then reach marker 13
