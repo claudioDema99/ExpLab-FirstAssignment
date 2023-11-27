@@ -74,12 +74,17 @@ class RobotActionClient(Node):
             self.get_logger().info("All markers are reached")
             self.flag = 3
             self.send_goal_position_marker(0, 0, 0)
+            self.rotation_camera_activation(False)
             self.position_marker_camera(0)
-        
+        # end the program
+        if self.reached_marker == 5:
+            self.get_logger().info("Work done!")
+            rclpy.shutdown()        
+                
     ## REQUEST to CONTROLLER to move to the goal position##
     def send_goal_position_marker(self, x_goal, y_goal, theta):
         goal_msg = MarkerPosition.Goal()
-        goal_msg.x_goal = x_goal
+        goal_msg.x_goal = x_goal + 0.1 # add 10 cm because it is the distance between the camera frame and the robot frame
         goal_msg.y_goal = y_goal
         # we need to convert the theta to respect the camera's frame into the marker's frame
         if math.pi*1/8 < theta < math.pi*3/8:
@@ -95,22 +100,10 @@ class RobotActionClient(Node):
             if theta < 0:
                 theta = theta + math.pi*2
         goal_msg.theta_goal = theta
-        
-        self.get_logger().info('Sending goal request...')
+        self.get_logger().info("Sending -> x_goal: {0}, y_goal: {1}, theta: {2}".format(x_goal, y_goal, theta))
         self._action_client.wait_for_server()
         self._send_goal_future = self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
         self._send_goal_future.add_done_callback(self.goal_response_callback)
-        
-    
-    def calculate_relative_translation(self, T_machine, T_camera):
-        # Convert translation vectors to numpy arrays for easier manipulation
-        translation_machine = np.array(T_machine[:3])
-        translation_camera = np.array(T_camera[:3])
-
-        # Calculate relative translation
-        relative_translation = translation_machine - translation_camera
-
-        return relative_translation
 
     # callback for checking if the info goal is reached
     def goal_response_callback(self, future):
@@ -128,7 +121,6 @@ class RobotActionClient(Node):
     def get_result_callback(self, future):
         result = future.result().result
         if result.reached: # if the goal is reached so I reacheved a TRUE value from the server
-            self.get_logger().info('Goal reached!')
             self.get_logger().info('Marker number {0} reached'.format(self.id_marker))
             self.flag = 0
             self.reached_marker += 1
@@ -189,7 +181,7 @@ class RobotActionClient(Node):
             for i in range(8):
                 self.corners_marker.append(big_data_corners[i+8*self.position_marker]) 
                 
-            self.get_logger().info('Corners: {0}'.format(self.corners_marker))
+            #self.get_logger().info('Corners: {0}'.format(self.corners_marker))
         else:
             self.corners_marker = []
             #self.get_logger().info('Marker not found')
