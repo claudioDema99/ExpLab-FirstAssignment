@@ -84,7 +84,7 @@ class RobotActionClient(Node):
     ## REQUEST to CONTROLLER to move to the goal position##
     def send_goal_position_marker(self):
         goal_msg = MarkerPosition.Goal()
-        goal_msg.x_goal = (self.x_goal + 0.1)*4 # add 10 cm because it is the distance between the camera frame and the robot frame
+        goal_msg.x_goal = (self.x_goal + 0.1) * 3.5 * (-1)# add 10 cm because it is the distance between the camera frame and the robot frame
         goal_msg.y_goal = self.y_goal
         theta = self.theta
         # we need to convert the theta to respect the camera's frame into the marker's frame
@@ -153,8 +153,6 @@ class RobotActionClient(Node):
             theta = 0.1
         else:
             theta = self.theta
-            if(theta > math.pi):
-                theta = theta - math.pi*2 # convert the theta from 3.14 to 6.28 into -3.14 to 0
         msg.data = theta
         self.publisher_camera_theta.publish(msg)      
         
@@ -163,6 +161,7 @@ class RobotActionClient(Node):
         self.id_marker = self.goal_markers[self.reached_marker] # take the marker's id to reach
         # take the markers's id
         self.ids_marker = msg.marker_ids
+        self.get_logger().warn('Markers found {0}'.format(self.ids_marker))
         # check if the marker is the one we are looking for
         if self.id_marker in self.ids_marker:
             self.flag_marker = 1
@@ -178,11 +177,9 @@ class RobotActionClient(Node):
                 roll = math.pi + (math.pi + roll)  
             # take the marker's info   
             self.theta = roll
-            self.x_goal = (msg.poses[self.position_marker].position.z) * (-1)
-            self.y_goal = msg.poses[self.position_marker].position.y
-            z_pose = msg.poses[self.position_marker].position.x
-            self.get_logger().info('Marker {0} position: z: {1}, y: {2}, x: {3}'.format(self.id_marker, self.x_goal, self.y_goal, z_pose))
-            
+            self.x_goal = (msg.poses[self.position_marker].position.z)
+            self.y_goal = msg.poses[self.position_marker].position.x
+            self.get_logger().info('x_goal: {0}, y_goal: {1}, theta: {2}'.format(self.x_goal, self.y_goal, self.theta))           
         else:
             # if the marker is not in the list we wait and then we check again
             #self.get_logger().info('Marker not found')
@@ -295,4 +292,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
