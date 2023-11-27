@@ -150,7 +150,7 @@ class RobotActionClient(Node):
     def position_marker_camera(self, active):
         msg = Float64()
         if active == False:
-            theta = 0.0
+            theta = 0.1
         else:
             theta = self.theta
             if(theta > math.pi):
