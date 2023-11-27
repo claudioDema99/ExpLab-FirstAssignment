@@ -16,7 +16,7 @@ class RobotActionClient(Node):
     def __init__(self):
         super().__init__('robot_action_client')
         # ACTION CLIENT to MOVE the ROBOT
-        self._action_client = ActionClient(self, MarkerPosition, 'robot_controller')
+        self._action_client = ActionClient(self, MarkerPosition, 'marker_position')
          # SUBSCRIBER TO ARUCO_MARKERS
         self.subscription_aruco = self.create_subscription(
             ArucoMarkers,
@@ -82,11 +82,21 @@ class RobotActionClient(Node):
         goal_msg.x_goal = x_goal
         goal_msg.y_goal = y_goal
         # we need to convert the theta to respect the camera's frame into the marker's frame
-        theta = theta + math.pi
-        if theta > math.pi*2:
-            theta = theta - math.pi*2
+        if math.pi*1/8 < theta < math.pi*3/8:
+            theta = theta + math.pi
+        elif math.pi*3/8 < theta < math.pi*5/8:
+            theta = theta + math.pi
+            if theta > math.pi*2:
+                theta = theta - math.pi*2
+        elif math.pi*5/8 < theta < math.pi*7/8:
+            theta = theta - math.pi
+        elif math.pi*7/8 < theta or theta < math.pi*1/8:
+            theta = theta - math.pi
+            if theta < 0:
+                theta = theta + math.pi*2
         goal_msg.theta_goal = theta
-
+        
+        self.get_logger().info('Sending goal request...')
         self._action_client.wait_for_server()
         #self._send_goal_future = self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
         self._send_goal_future.add_done_callback(self.goal_response_callback)
@@ -218,7 +228,7 @@ class RobotActionClient(Node):
         y2 = coordinates[3]
         y3 = coordinates[5]
         y4 = coordinates[7]
-        area = 0.5 * abs(x1*y2 + x2*y3 + x3*y4 + x4*y1) - (y1*x2 + y2*x3 + y3*x4 + y4*x1) 
+        area = 0.5 * abs((x1*y2 + x2*y3 + x3*y4 + x4*y1) - (y1*x2 + y2*x3 + y3*x4 + y4*x1))
         return area
     
     # FOLLOW the MARKER with the camera doing the motion
