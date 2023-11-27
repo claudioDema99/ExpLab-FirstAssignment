@@ -60,7 +60,6 @@ class RobotActionClient(Node):
         
     ## TIMER for CONTROLLER the LOGIC ##
     def timer_callback(self):
-        self.id_marker = self.goal_markers[self.reached_marker] # take the marker's id to reach
         if self.flag == 0:
             self.get_logger().info("Camera is rotating, the robot is waiting")
             self.rotation_camera_activation(True)
@@ -145,6 +144,7 @@ class RobotActionClient(Node):
         
     ## callback for UPDATE the ARUCO MARKER'S INFO ##
     def aruco_callback(self, msg):
+        self.id_marker = self.goal_markers[self.reached_marker] # take the marker's id to reach
         # take the markers's id
         self.ids_marker = msg.marker_ids
         # check if the marker is the one we are looking for
@@ -227,7 +227,7 @@ class RobotActionClient(Node):
     # FOLLOW the MARKER with the camera doing the motion
     def aruco_follow_marker(self):
        # Check if the position of the marker is in the area
-        if self.flag_marker == 1:                    
+        if self.flag_marker == 1 :                    
             # Calculate the area of the bounding box around the marker
             marker_area = self.calculate_rectangle_area(self.corners_marker)
             # Define the minimum and maximum allowed area
