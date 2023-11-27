@@ -129,7 +129,7 @@ class RobotActionClient(Node):
         result = future.result().result
         if result.reached: # if the goal is reached so I reacheved a TRUE value from the server
             self.get_logger().info('Goal reached!')
-            self.get_logger().info('Marker number {0} reached'.format(self.goal_markers[self.marker_number]))
+            self.get_logger().info('Marker number {0} reached'.format(self.id_marker))
             self.flag = 0
             self.reached_marker += 1
 
