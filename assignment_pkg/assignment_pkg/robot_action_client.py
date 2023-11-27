@@ -96,7 +96,7 @@ class RobotActionClient(Node):
                 theta = theta - math.pi*2
         elif math.pi*5/8 < theta < math.pi*7/8:
             theta = theta - math.pi
-        elif math.pi*7/8 < theta or theta < math.pi*1/8:
+        elif theta < math.pi*1/8 or theta > math.pi*7/8:
             theta = theta - math.pi
             if theta < 0:
                 theta = theta + math.pi*2
