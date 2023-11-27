@@ -72,10 +72,11 @@ class RobotController(Node):
 
         #self.get_logger().info("Target.data is: {0})".format(self.target.data))
         if self.ready.data == True:  # it is True if a goal target has been received, Useless, but I keep it for clarity
-            self.get_logger().error('Received new target orientation (Theta: {0})'.format(msg.data))
+            #self.get_logger().error('Received new target orientation (Theta: {0})'.format(msg.data))
             # Store new target orientation (goal)
             self.theta_goal = msg.data
             self.target.data = True  # I don't need to receive another target yet
+            self.ang_pid.reset()
 
 
     def camera_modality_callback(self, msg: Bool):
@@ -108,11 +109,11 @@ class RobotController(Node):
             cmd_msg.data = [self.current_angle.data]
             self.cmd_vel_pub.publish(cmd_msg)
             #self.get_logger().info('(Sign: {0})'.format(self.sign))
-            self.get_logger().info(' (Current_angle of rotation: {0})'.format(self.current_angle.data))
+            #self.get_logger().info(' (Current_angle of rotation: {0})'.format(self.current_angle.data))
 
 
             # Log the current angle
-            self.get_logger().info("Camera is rotating...")
+            #self.get_logger().info("Camera is rotating...")
 
         elif self.modality.data == False:
 
@@ -123,8 +124,8 @@ class RobotController(Node):
                 self.ang_pid.sample_time = self.dt
                 self.ang_pid.setpoint = self.theta_goal
                 # Reset PID internals to clear previous errors
-                self.ang_pid.reset()
-                self.get_logger().warn("Target selected, keeping an eye on it..")
+                #self.ang_pid.reset()
+                #self.get_logger().warn("Target selected, keeping an eye on it..")
                 self.target.data = False
                 self.timer = self.create_timer(self.dt, self.control_loop_callback)
             
@@ -135,7 +136,8 @@ class RobotController(Node):
                 # questo messaggio anche se il target è stato selezionato, ma non è un problema perchè il programma funziona lo stesso
 
         else:
-            self.get_logger().error("Something went wrong with the camera modality" )
+            #self.get_logger().error("Something went wrong with the camera modality" )
+            print()
             
             
             
@@ -156,21 +158,27 @@ class RobotController(Node):
         print()
         print("inizio calcolo PID")
         #self.get_logger().info("Current Angle: {0})".format(self.current_angle.data))
-        self.get_logger().info("Theta goal: {0})".format(self.ang_pid.setpoint))
+        #self.get_logger().info("Theta goal: {0})".format(self.ang_pid.setpoint))
         #self.get_logger().info("Remaining error: {0})".format(ang_error))
 
 
        
         # Compute rotation control based on the target rotation
-        ang_control = np.clip(self.ang_pid(self.current_angle.data) * self.dt, -0.5, 0.5)
+        ang_control = np.clip(self.ang_pid(self.current_angle.data) * self.dt, -0.01, 0.01)
         #self.get_logger().warn(" Angle control is: {0}".format(ang_control))
 
 
         # Update the current angle based on the PID control
+        if self.current_angle.data > 3.13:
+            self.current_angle.data = 3.13
+            self.get_logger().error('Angle is too much')
+            
+        elif self.current_angle.data < -3.13:
+            self.current_angle.data = -3.13
+            self.get_logger().error('Angle is too low')
+            
         self.current_angle.data += ang_control
         self.get_logger().warn(" Current angle is: {0}".format(self.current_angle.data))
-
-    
         # Publish command velocity message
         cmd_msg = Float64MultiArray()
         cmd_msg.data = [self.current_angle.data]
