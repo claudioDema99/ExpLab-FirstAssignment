@@ -120,9 +120,10 @@ class RobotActionClient(Node):
     # result callback for goal reached 'reached'
     def get_result_callback(self, future):
         result = future.result().result
-        if result.reached: # if the goal is reached so I reacheved a TRUE value from the server
+        if result.reached == True: # if the goal is reached so I reacheved a TRUE value from the server
             self.get_logger().info('Marker number {0} reached'.format(self.id_marker))
             self.flag = 0
+            self.flag_marker = 0
             self.reached_marker += 1
 
     # feedback callback 
