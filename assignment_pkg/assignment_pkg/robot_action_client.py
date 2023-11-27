@@ -81,6 +81,10 @@ class RobotActionClient(Node):
         goal_msg = MarkerPosition.Goal()
         goal_msg.x_goal = x_goal
         goal_msg.y_goal = y_goal
+        # we need to convert the theta to respect the camera's frame into the marker's frame
+        theta = theta + math.pi
+        if theta > math.pi*2:
+            theta = theta - math.pi*2
         goal_msg.theta_goal = theta
 
         self._action_client.wait_for_server()
@@ -173,7 +177,7 @@ class RobotActionClient(Node):
             self.corners_marker = []
             # take the corners and put them in a list
             for i in range(8):
-                self.corners_marker.append([big_data_corners[i], big_data_corners[i+1]])
+                self.corners_marker.append(big_data_corners[i+8*self.position_marker]) 
                 
             self.get_logger().info('Corners: {0}'.format(self.corners_marker))
         else:
@@ -214,7 +218,7 @@ class RobotActionClient(Node):
         y2 = coordinates[3]
         y3 = coordinates[5]
         y4 = coordinates[7]
-        area = 0.5 * abs((x1[0]*y2[0] + x2[0]*y3[0] + x3[0]*y4[0] + x4[0]*y1[0]) - (y1[0]*x2[0] + y2[0]*x3[0] + y3[0]*x4[0] + y4[0]*x1[0]))
+        area = 0.5 * abs(x1*y2 + x2*y3 + x3*y4 + x4*y1) - (y1*x2 + y2*x3 + y3*x4 + y4*x1) 
         return area
     
     # FOLLOW the MARKER with the camera doing the motion
