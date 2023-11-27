@@ -56,6 +56,9 @@ class ControllerLogic(Node):
     def execute_callback(self, goal_handle):
         # Callback when a new goal is received
         goal = goal_handle.request
+        print(goal.x_goal)
+        print(goal.y_goal)
+        print(goal.theta_goal)
         # transformation matrix in order to transform the relative position of the target (wrt the robot frame) to the absolute position
         t_m = self.transformation_matrix(self.x, self.y, self.theta)
         x = np.array([goal.x_goal, goal.y_goal, 1])
@@ -63,6 +66,10 @@ class ControllerLogic(Node):
         self.x_goal = x_t[0]
         self.y_goal = x_t[1]
         self.theta_marker = goal.theta_goal
+        print()
+        print(self.x_goal)
+        print(self.y_goal)
+        print(self.theta_marker)
 
         self.calculate_desired_target()
         #print(GOAL_PRINT_1 + str(self.x_goal))
