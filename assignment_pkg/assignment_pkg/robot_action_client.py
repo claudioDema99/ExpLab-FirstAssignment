@@ -165,7 +165,6 @@ class RobotActionClient(Node):
         self.ids_marker = msg.marker_ids
         # check if the marker is the one we are looking for
         if self.id_marker in self.ids_marker:
-            self.get_logger().info('Markers found {0}'.format(self.ids_marker))
             self.flag_marker = 1
             #take the numeber inside the list
             self.position_marker = self.ids_marker.index(self.id_marker)
