@@ -200,7 +200,7 @@ class RobotControl(Node):
         else:
             # Marker is outside of the camera's field of view
             self.position_marker_camera(False)
-            self.get_logger().info("Target marker is outside the cameras' range. Camera is going to the home position")
+            self.get_logger().error("Target marker is outside the cameras' range. Rotating randomly the camera.")
     
 
 def main(args=None):
