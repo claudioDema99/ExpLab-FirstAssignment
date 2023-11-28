@@ -217,12 +217,9 @@ class RobotActionClient(Node):
             
             # Check if the marker area is inside the minimum area 
             if marker_area < min_area + treshold:
-                # Marker is within the specified area
                 self.flag = 1
                 self.rotation_camera_activation(False)
                 self.position_marker_camera(True)
-                #self.get_logger().info("x_goal: {0}, y_goal: {1}, theta: {2}".format(self.x_goal, self.y_goal, self.theta))
-                #self.get_logger().info("Theta type: {0}".format(type(self.theta)))
                 self.send_goal_position_marker()
             else:
                 self.get_logger().info("Target marker is outside.")
