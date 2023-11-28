@@ -123,13 +123,13 @@ class RobotControl(Node):
     def aruco_controller_area(self):
         # Check if the position of the marker is in the area
         if self.flag_marker == 1 and len(self.corners_marker) != 0: 
-            last_marker_area = None                  
+            last_marker_area = 300000                  
             while not self.flag:
                 marker_area = self.calculate_rectangle_area(self.corners_marker)
                 self.get_logger().info('Marker area: {0}'.format(marker_area))
 
                 # Check if the marker area is changing
-                if last_marker_area is not None and marker_area == last_marker_area:
+                if last_marker_area is not None and marker_area < last_marker_area:
                     self.get_logger().info("Marker area is not changing.")
                     self.rotation_camera_activation(True)
                     self.flag = True
