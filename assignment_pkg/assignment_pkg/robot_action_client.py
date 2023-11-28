@@ -57,18 +57,29 @@ class RobotActionClient(Node):
         # flag to check if the marker to reach is found by the camera
         self.flag_marker = 0
         
+##############################################################################
+############################# DEBUG FUNCTION #################################
+##############################################################################
+    def wait_for_input(self):
+            while True:
+                user_input = input("Quando vuoi andare avanti: ")
+                if user_input:
+                    break
+                
+##############################################################################
+############################# FUNCTIONS ######################################
+##############################################################################
         
-    ## TIMER for CONTROLLER the LOGIC ##
+    ## TIMER for the CONTROLLER LOGIC ##
     def timer_callback(self):
         self.id_marker = self.goal_markers[self.reached_marker] # take the marker's id to reach
         if self.flag == 0:
-            self.get_logger().info("Camera is rotating, the robot is waiting")
+            #self.get_logger().info("Camera is rotating, the robot is waiting")
             self.rotation_camera_activation(True)
             self.aruco_controller_area()
         elif self.flag == 1:
-            self.get_logger().info("Camera is following the marker, the robot is moving")
-            self.aruco_follow_marker()
-            
+            #self.get_logger().info("Camera is following the marker, the robot is moving")
+            self.aruco_follow_marker()           
         # if the markers are reached go in home position
         if self.reached_marker == 4:
             self.get_logger().info("All markers are reached")
@@ -81,10 +92,10 @@ class RobotActionClient(Node):
             self.get_logger().info("Work done!")
             rclpy.shutdown()        
                 
-    ## REQUEST to CONTROLLER to move to the goal position##
+    ## ACTION CLIENT to MOVE the ROBOT ##
     def send_goal_position_marker(self):
         goal_msg = MarkerPosition.Goal()
-        goal_msg.x_goal = (self.x_goal + 0.1) * 3.5 * (-1)# add 10 cm because it is the distance between the camera frame and the robot frame
+        goal_msg.x_goal = (self.x_goal + 0.1) # add 10 cm because it is the distance between the camera frame and the robot frame
         goal_msg.y_goal = self.y_goal
         theta = self.theta
         # we need to convert the theta to respect the camera's frame into the marker's frame
@@ -103,18 +114,13 @@ class RobotActionClient(Node):
         goal_msg.theta_goal = theta
         self.get_logger().info("Sending -> x_goal: {0}, y_goal: {1}, theta: {2}".format(goal_msg.x_goal, goal_msg.y_goal, goal_msg.theta_goal))
         self._action_client.wait_for_server()
-        #wait for a input from the user
+        ###### DEBUG ######
         self.wait_for_input()
+        ###################
         self._send_goal_future = self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
         self._send_goal_future.add_done_callback(self.goal_response_callback)
-        
-    def wait_for_input(self):
-        while True:
-            user_input = input("Quando vuoi andare avanti: ")
-            if user_input:
-                break
 
-    # callback for checking if the info goal is reached
+    # goal callback for goal reached 'accepted'
     def goal_response_callback(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
@@ -126,7 +132,7 @@ class RobotActionClient(Node):
         self._get_result_future = goal_handle.get_result_async()
         self._get_result_future.add_done_callback(self.get_result_callback)
 
-    # result callback for goal reached 'reached'
+    # result callback for goal reached 'succeeded'
     def get_result_callback(self, future):
         result = future.result().result
         if result.reached == True: # if the goal is reached so I reacheved a TRUE value from the server
@@ -135,28 +141,28 @@ class RobotActionClient(Node):
             self.flag_marker = 0
             self.reached_marker += 1
 
-    # feedback callback 
+    # feedback callback for goal reached 'feedback' but we don't use it
     def feedback_callback(self, feedback_msg):
         feedback = feedback_msg.feedback
         #self.get_logger().info('Distance to the marker goal: {0}'.format(feedback.distance_to_goal))
     
-    ## PUBLISHER to CAMERA for rotating itself ##
+    ## PUBLISHER to CAMERA for rotating itself in searching mode ##
     def rotation_camera_activation(self, on_off):
         msg = Bool()
         msg.data = on_off
         self.publisher_camera_onoff.publish(msg)
         
-    ## PUBLISHER to CAMERA the theta_goal ##
+    ## PUBLISHER to CAMERA the theta_goal in following mode ##
     def position_marker_camera(self, active):
         msg = Float64()
-        if active == False:
-            theta = 0.1
+        if active == False: # if the marker is outside of the camera's field of view
+            theta = 0.1 # go near the home position
         else:
             theta = self.theta
         msg.data = theta
         self.publisher_camera_theta.publish(msg)      
         
-    ## callback for UPDATE the ARUCO MARKER'S INFO ##
+    ## callback for UPDATE the MARKER'S INFO ##
     def aruco_callback(self, msg):
         self.id_marker = self.goal_markers[self.reached_marker] # take the marker's id to reach
         # take the markers's id
@@ -177,15 +183,14 @@ class RobotActionClient(Node):
                 roll = math.pi + (math.pi + roll)  
             # take the marker's info   
             self.theta = roll
-            self.x_goal = (msg.poses[self.position_marker].position.z)
+            self.x_goal = msg.poses[self.position_marker].position.z
             self.y_goal = msg.poses[self.position_marker].position.x
             self.get_logger().info('x_goal: {0}, y_goal: {1}, theta: {2}'.format(self.x_goal, self.y_goal, self.theta))           
         else:
             # if the marker is not in the list we wait and then we check again
-            #self.get_logger().info('Marker not found')
             self.flag_marker = 0
     
-    ## callback for UPDATE the CORNERS of the ARUCO MARKER ##
+    ## callback for UPDATE the MARKER'S CORNERS ##
     def corners_callback(self, msg):
         if self.flag_marker == 1:
             # take the marker's corners
@@ -195,11 +200,8 @@ class RobotActionClient(Node):
             # take the corners and put them in a list
             for i in range(8):
                 self.corners_marker.append(big_data_corners[i+8*self.position_marker]) 
-                
-            #self.get_logger().info('Corners: {0}'.format(self.corners_marker))
         else:
             self.corners_marker = []
-            #self.get_logger().info('Marker not found')
      
     # WAIT for the MARKER to be in the AREA and then MOVE the ROBOT to the MARKER with the camera doing the motion 
     def aruco_controller_area(self):
@@ -210,8 +212,8 @@ class RobotActionClient(Node):
             self.get_logger().info('Marker area: {0}'.format(marker_area))
 
             # Define the minimum and maximum allowed area
-            min_area = 1500  # 20x20 pixels
-            treshold = 0  # value to increase the area for the marker to be in the area
+            min_area = 2000  # 20x20 pixels
+            treshold = -600 # value to have the marker in the center of the camera's field of view (more perpendicolar to the camera)
             
             # Check if the marker area is inside the minimum area 
             if marker_area < min_area + treshold:
@@ -245,8 +247,7 @@ class RobotActionClient(Node):
             # Calculate the area of the bounding box around the marker
             marker_area = self.calculate_rectangle_area(self.corners_marker)
             # Define the minimum and maximum allowed area
-            min_area = 2000  # 20x20 pixels
-            
+            min_area = 2000  # 20x20 pixels         
             # Check if the marker area is inside the minimum area 
             if marker_area < min_area:    
                 # Marker is within the specified area
