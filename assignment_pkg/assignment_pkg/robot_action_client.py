@@ -126,7 +126,7 @@ class RobotControl(Node):
             self.get_logger().info('Marker area: {0}'.format(marker_area))
 
             # Define the minimum and maximum allowed area
-            area_nice = 1500  # 20x20 pixels
+            area_nice = 1400  # 20x20 pixels
             treshold = 150 # value to have the marker in the center of the camera's field of view (more perpendicolar to the camera)
             
             # Check if the marker area is inside the minimum area 
@@ -157,7 +157,7 @@ class RobotControl(Node):
             biggest_side = self.calculate_distance(self.corners_marker)
             self.get_logger().info('Biggest side: {0}'.format(biggest_side))
             # define the area where the marker is close to the robot
-            distance_check = 100  # to control
+            distance_check = 150  # to control
             if biggest_side > distance_check:
                 ###### DEBUG ######
                 #self.wait_for_input()
