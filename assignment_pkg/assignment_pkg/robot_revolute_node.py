@@ -62,7 +62,7 @@ class RobotController(Node):
 
 
         # Define publishers 
-        self.publisher_roatation_goal = self.create_publisher(Float64MultiArray, 'camera_theta_goal', 10)
+        self.publisher_roatation_goal = self.create_publisher(Float64, 'camera_theta_goal', 10)
 
         self.cmd_vel_pub = self.create_publisher(Float64MultiArray, "/joint_cam_controller/commands", 10)
 
@@ -177,8 +177,8 @@ class RobotController(Node):
             cmd_msg.data = [self.current_angle.data]
             self.cmd_vel_pub.publish(cmd_msg)
 
-            theta_goal_msg = Float64MultiArray()
-            theta_goal_msg.data = [self.current_angle.data] 
+            theta_goal_msg = Float64()
+            theta_goal_msg.data = self.current_angle.data
             self.publisher_roatation_goal.publish(theta_goal_msg)
 
 
