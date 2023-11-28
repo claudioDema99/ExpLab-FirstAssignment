@@ -49,6 +49,8 @@ class RobotControl(Node):
         # flag to check if the marker to reach is found by the camera
         self.flag_marker = 0
         
+        self.last_marker_area = 300000
+        
 ##############################################################################
 ############################# DEBUG FUNCTION #################################
 ##############################################################################
@@ -123,21 +125,17 @@ class RobotControl(Node):
     def aruco_controller_area(self):
         # Check if the position of the marker is in the area
         if self.flag_marker == 1 and len(self.corners_marker) != 0: 
-            last_marker_area = 300000                  
-            while not self.flag:
-                marker_area = self.calculate_rectangle_area(self.corners_marker)
-                self.get_logger().info('Marker area: {0} and last marker area: {1}'.format(marker_area, last_marker_area))
+            marker_area = self.calculate_rectangle_area(self.corners_marker)
+            self.get_logger().info('Marker area: {0} and last marker area: {1}'.format(marker_area, self.last_marker_area))
 
-                # Check if the marker area is changing
-                if  last_marker_area < marker_area:
-                    self.get_logger().info("Marker area is increasing.")
-                    self.rotation_camera_activation(False)
-                    self.flag = 1
-                    return  # Exit the loop if the condition is met
-            
-                last_marker_area = marker_area
-                # Wait for the next iteration
-                time.sleep(0.1)
+            # Check if the marker area is changing
+            if  self.last_marker_area < marker_area:
+                self.get_logger().info("Marker area is increasing.")
+                self.rotation_camera_activation(False)
+                self.flag = 1
+                return  # Exit the loop if the condition is met
+        
+            self.last_marker_area = marker_area
         
     def calculate_rectangle_area(self, coordinates):
         # Calculate the area of the bounding box around the marker
