@@ -104,10 +104,13 @@ class MotorControl(Node):
         print(" \n\n\n\n                    REACHED CALLBACK ")
         stop = msg.data
         if stop == True and self.flag == 2:
-            print(" I'm in")
+            print(" I'm in true")
             self.stop()
             self.flag += 1
-            stop = False   
+        elif stop == False and self.flag == 2:
+            print(" I'm in false")
+            self.stop()
+            self.flag = 0
 
     def allign_camera(self):
         msg = Float64()
@@ -122,7 +125,7 @@ class MotorControl(Node):
         else:
             msg.data = 0.25
             self.rotate(1)
-        if abs(self.theta_goal - self.theta) < 0.02:
+        if abs(self.theta_goal - self.theta) < 0.01:
             #print(GOAL_PRINT_4)
             msg.data = 0.0
             self.stop()
