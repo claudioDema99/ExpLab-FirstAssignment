@@ -31,7 +31,8 @@ A distinctive feature of this robot is its camera system, comprised of *link_cam
 
 
 ## The Nodes
-ROBOT CONTROL
+### ROBOT CONTROL
+
 This ROS2 Python robot controller node that utilizes Aruco markers for navigation. The controller subscribes to Aruco marker messages, receives information about marker corners, and controls the robot's movement based on the marker's position and orientation. 
 
 
