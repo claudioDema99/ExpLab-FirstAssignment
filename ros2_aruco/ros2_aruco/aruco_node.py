@@ -157,7 +157,8 @@ class ArucoNode(rclpy.node.Node):
                 pose_array.poses.append(pose)
                 markers.poses.append(pose)
                 markers.marker_ids.append(marker_id[0])
-                   
+                 
+                # Add corners to array for publishing  
                 cornertop = corners[i][0]
                 for j in range(4):
                     corners_array.data.append(cornertop[j][0])
@@ -166,7 +167,7 @@ class ArucoNode(rclpy.node.Node):
             self.poses_pub.publish(pose_array)
             self.markers_pub.publish(markers)
             self.corners_pub.publish(corners_array)
-
+            
 
 def main():
     rclpy.init()
