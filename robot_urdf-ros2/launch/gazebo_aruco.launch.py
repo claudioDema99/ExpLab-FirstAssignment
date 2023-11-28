@@ -55,6 +55,24 @@ def generate_launch_description():
         name='aruco_node'
     )
 
+    motor_node = Node(
+        package='assignment_pkg',
+        executable='motor_control',
+        name='motor_control'
+    )
+    
+    client_node = Node(
+        package='assignment_pkg',
+        executable='robot_action_client',
+        name='robot_action_client'
+    )
+    
+    revolute_node = Node(
+        package='assignment_pkg',
+        executable='robot_revolute_node',
+        name='robot_revolute_node'
+    )
+
     # GAZEBO_MODEL_PATH has to be correctly set for Gazebo to be able to find the model
     spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
                         arguments=['-entity', 'my_test_robot', '-topic', '/robot_description'],
@@ -70,6 +88,9 @@ def generate_launch_description():
         broad,
         aruco_generate_marker_node,
         aruco_node,
+        motor_node,
+        client_node,
+        revolute_node,
         ExecuteProcess(
             cmd=['gazebo', '--verbose', default_world_path, '-s', 'libgazebo_ros_factory.so'],
             output='screen'),
