@@ -56,21 +56,26 @@ class MotorControl(Node):
         if self.flag == 0:
             # ricevo costantemente il mio theta da /odom e aspetto che mi venga inviato
             # il theta goal da /camera_theta_goal
-            time.sleep(self.dt)
+            time.sleep(self.dt/2)
+            print(" ASPETTO IL THETA BOIA CAGNA \n")
 
         elif self.flag == 1:
             # allineo il robot con il marker
             self.allign_camera()
+            print(" MI ALLINEO CON LA CAMERA DI MERDA \n")
 
         elif self.flag == 2:
             # raggiungo il marker
             self.go(1)
+            print(" CHE CAZZO FACCIO ORA? VADO DRITTO FIGA \n")
+            time.sleep(self.dt)
 
         elif self.flag == 3:
             # vado indietro un pelo
             # Go backwards to allow the next turn
+            print(" BOIA LADRA TORNO INDIETRO \n\n")
             self.go(-1)
-            time.sleep(0.5)
+            time.sleep(self.dt * 5)
             self.stop()
             self.flag = 0
 
@@ -89,14 +94,15 @@ class MotorControl(Node):
         # Callback for processing odometry data
         if self.flag == 0:
             self.theta_goal = msg.data
-            self.flag = 1
+            self.flag += 1
 
     def reached_callback(self, msg):
         # Callback for processing odometry data
-        if self.flag == 2:
-            if msg.data:
-                self.stop()
-                self.flag += 1
+        print(" \n\n\n\n                    REACHED CALLBACK ")
+        if msg.data == True and self.flag == 2:
+            print(" I'm in")
+            self.stop()
+            self.flag += 1
 
     def allign_camera(self):
         # Align the camera with the goal orientation
@@ -107,7 +113,7 @@ class MotorControl(Node):
         else:
             self.rotate(1)
         if abs(self.theta_goal - self.theta) < 0.02:
-            print(GOAL_PRINT_4)
+            #print(GOAL_PRINT_4)
             self.stop()
             self.flag += 1
 
@@ -129,7 +135,7 @@ class MotorControl(Node):
         # Rotate the robot in place
         cmd_vel = Twist()
         cmd_vel.linear.x = 0.0
-        cmd_vel.angular.z = sign * MAX_VEL
+        cmd_vel.angular.z = (sign * MAX_VEL)/2
         self.publisher_.publish(cmd_vel)
 """
     def wait_for_input(self):
