@@ -84,7 +84,7 @@ class RobotControl(Node):
     
     ## PUBLISHER to MOTOR for marker reached ##
     def marker_reached(self, control):
-        msg = control
+        msg = Bool()
         msg.data = control
         self.publisher_marker_reached.publish(msg)    
                    
