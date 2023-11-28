@@ -52,7 +52,6 @@ class MotorControl(Node):
         self.dt = 0.1
         self.control_loop_timer = self.create_timer(self.dt, self.robot_movement)
 
-
     def robot_movement(self):
 
         if self.flag == 0:
@@ -70,7 +69,7 @@ class MotorControl(Node):
             # raggiungo il marker
             self.go(1)
             print(" CHE CAZZO FACCIO ORA? VADO DRITTO FIGA \n")
-            time.sleep(self.dt/2)
+            #time.sleep(self.dt/2)
 
         elif self.flag == 3:
             # vado indietro un pelo
@@ -95,7 +94,9 @@ class MotorControl(Node):
     def theta_callback(self, msg):
         # Callback for processing odometry data
         if self.flag == 0:
-            self.theta_goal = msg.data
+            self.theta_goal = self.theta + msg.data
+            if self.theta_goal > 6.28:
+                self.theta_goal -= 6.28
             self.flag += 1
 
     def reached_callback(self, msg):
@@ -106,12 +107,15 @@ class MotorControl(Node):
             print(" I'm in")
             self.stop()
             self.flag += 1
+            stop = False   
 
     def allign_camera(self):
         msg = Float64()
         # Align the camera with the goal orientation
         # Next line is to handle the case where the angle wraps around from the maximum value (6.28) to the minimum value (0.0)
         diff = (self.theta_goal - self.theta + 6.28) % 6.28
+        print("\n\n\n       THETA GOL      ")
+        print(self.theta_goal)
         if diff > 3.14: # Half of the maximum range
             msg.data = -0.25
             self.rotate(-1)
