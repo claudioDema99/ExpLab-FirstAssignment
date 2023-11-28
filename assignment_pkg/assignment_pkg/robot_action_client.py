@@ -5,9 +5,6 @@ from std_msgs.msg import Bool, Float32MultiArray
 
 from ros2_aruco_interfaces.msg import ArucoMarkers
 
-import math
-import numpy as np 
-
 
 class RobotControl(Node):
 
