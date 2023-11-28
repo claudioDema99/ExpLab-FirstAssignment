@@ -23,6 +23,7 @@ class RobotController(Node):
 
 
 
+
         self.target = Bool()
         self.target.data = False  # True if a new target has been received
 
@@ -102,6 +103,13 @@ class RobotController(Node):
 
             self.waypoint_reached.data = True
 
+            if self.current_angle.data >= 6.27:
+                self.current_angle.data = 6.27
+                self.get_logger().error('Angle is too much')
+            elif self.current_angle.data <= 0.01:
+                self.current_angle.data = 0.01
+                self.get_logger().error('Angle is too low')
+
             self.current_angle.data += 0.01 * self.sign
 
             self.current_angle.data = round(self.current_angle.data, 3)
@@ -110,13 +118,14 @@ class RobotController(Node):
                 self.sign = self.sign * (-1)
                 #self.get_logger().info("Inverting Rotation...")
 
+
             # Publish command to rotate the joint
             cmd_msg = Float64MultiArray()
             cmd_msg.data = [self.current_angle.data]
             self.cmd_vel_pub.publish(cmd_msg)
             
 
-            self.get_logger().info("Camera is rotating, Current Angle is: {0})".format(self.current_angle.data))
+            self.get_logger().info("\nCamera is rotating, \nCurrent Angle is: {0}".format(self.current_angle.data))
             #self.get_logger().info(' ( Waypoint_reached: {0})'.format(self.waypoint_reached.data))
             #self.get_logger().info('(Sign: {0})'.format(self.sign))
 
@@ -149,8 +158,7 @@ class RobotController(Node):
     def control_loop_callback(self):
 
 
-        if self.waypoint_reached.data == True:
-            #self.get_logger().error("Waypoint reached is True, waiting for a new target..")
+        if self.waypoint_reached.data == True:            
             return
         
         # Compute remaining errors
