@@ -86,7 +86,7 @@ class RobotActionClient(Node):
             self.flag = 3
             self.send_goal_position_marker(0, 0, 0)
             self.rotation_camera_activation(False)
-            self.position_marker_camera(False)
+            self.position_marker_camera(False) # camera in home position
         # end the program
         if self.reached_marker == 5:
             self.get_logger().info("Work done!")
