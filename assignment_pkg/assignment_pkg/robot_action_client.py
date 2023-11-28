@@ -79,9 +79,7 @@ class RobotControl(Node):
             self.aruco_controller_area()
         elif self.flag == 1:
             #self.get_logger().info("Camera is following the marker, the robot is moving")
-            self.aruco_follow_marker()           
-
-             
+            self.aruco_follow_marker()                        
     
     ## PUBLISHER to CAMERA for rotating itself in searching mode ##
     def rotation_camera_activation(self, on_off):
@@ -187,8 +185,9 @@ class RobotControl(Node):
         if self.flag_marker == 1 and len(self.corners_marker) != 0:                    
             # Calculate the area of the bounding box around the marker
             marker_area = self.calculate_rectangle_area(self.corners_marker)
+            self.get_logger().info('Marker area: {0}'.format(marker_area))
             # define the area where the marker is close to the robot
-            area_distance = 4000 # 20x20 pixels  
+            area_distance = 3000 # 20x20 pixels  
             if marker_area > area_distance:
                 self.marker_reached()
                 return
