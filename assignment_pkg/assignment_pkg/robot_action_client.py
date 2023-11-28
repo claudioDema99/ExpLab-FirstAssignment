@@ -49,7 +49,7 @@ class RobotControl(Node):
         # flag to check if the marker to reach is found by the camera
         self.flag_marker = 0
         
-        self.last_marker_area = 300000
+        self.last_marker_area = 300000.0
         
 ##############################################################################
 ############################# DEBUG FUNCTION #################################
@@ -129,7 +129,7 @@ class RobotControl(Node):
             self.get_logger().info('Marker area: {0} and last marker area: {1}'.format(marker_area, self.last_marker_area))
 
             # Check if the marker area is changing
-            if  self.last_marker_area < marker_area:
+            if  marker_area > self.last_marker_area:
                 self.get_logger().info("Marker area is increasing.")
                 self.rotation_camera_activation(False)
                 self.flag = 1
