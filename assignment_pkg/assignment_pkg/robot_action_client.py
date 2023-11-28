@@ -169,8 +169,9 @@ class RobotControl(Node):
                 self.reached_marker += 1   
                 return
         else:
-            # send to the camera we have lost the marker
+            # send to the motor control we have lost the marker
             self.marker_reached(False)
+            self.flag = 0
             # Marker is outside of the camera's field of view
             self.get_logger().error("Target marker is outside the cameras' range. Rotating randomly the camera.")
     
