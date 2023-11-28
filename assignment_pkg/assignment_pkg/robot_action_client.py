@@ -50,6 +50,8 @@ class RobotControl(Node):
         self.flag = 0
         # flag to check if the marker to reach is found by the camera
         self.flag_marker = 0
+        # theta of the marker
+        self.theta = 0.0
         
 ##############################################################################
 ############################# DEBUG FUNCTION #################################
