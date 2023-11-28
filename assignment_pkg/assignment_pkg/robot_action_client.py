@@ -7,6 +7,8 @@ from ros2_aruco_interfaces.msg import ArucoMarkers
 
 import math
 
+import time
+
 class RobotControl(Node):
 
     def __init__(self):
@@ -120,22 +122,27 @@ class RobotControl(Node):
     # WAIT for the MARKER to be in the AREA and then MOVE the ROBOT to the MARKER with the camera doing the motion 
     def aruco_controller_area(self):
         # Check if the position of the marker is in the area
-        if self.flag_marker == 1 and len(self.corners_marker) != 0:                    
-            # Calculate the area of the bounding box around the marker
-            marker_area = self.calculate_rectangle_area(self.corners_marker)
-            self.get_logger().info('Marker area: {0}'.format(marker_area))
+        if self.flag_marker == 1 and len(self.corners_marker) != 0: 
+            last_marker_area = 30000                  
+            while not self.flag:
+                marker_area = self.calculate_rectangle_area(self.corners_marker)
+                self.get_logger().info('Marker area: {0}'.format(marker_area))
 
-            # Define the minimum and maximum allowed area
-            area_nice = 1400  # 20x20 pixels
-            treshold = 150 # value to have the marker in the center of the camera's field of view (more perpendicolar to the camera)
-            
-            # Check if the marker area is inside the minimum area 
-            if  area_nice-treshold < marker_area <  area_nice+treshold:
-                self.flag = 1
+                # Check if the marker area is changing
+                if last_marker_area is not None and marker_area == last_marker_area:
+                    self.get_logger().info("Marker area is not changing.")
+                    self.rotation_camera_activation(True)
+                    self.flag = True
+                    break  # Exit the loop if the condition is met
+
+                last_marker_area = marker_area
+                # Wait for the next iteration
+                time.sleep(0.1)
+
+            if not self.flag:
+                self.get_logger().info("Marker area did not grow.")
                 self.rotation_camera_activation(False)
-            else:
-                self.get_logger().info("Target marker is outside.")
-    
+        
     def calculate_rectangle_area(self, coordinates):
         # Calculate the area of the bounding box around the marker
         x1 = coordinates[0]
