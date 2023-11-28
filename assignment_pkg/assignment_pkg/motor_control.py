@@ -42,6 +42,8 @@ class MotorControl(Node):
         self.subscription
         # PUBLISHER TO CMD_VEL
         self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 10)
+        # PUBBLISHER TO ROTATE THE CAMERA IN THE OPPOSITE ROTATION
+        self.publisher_rotation = self.create_publisher(Float64, 'inverse_rotation', 10)
         # FLAG VARIABLE
         self.theta = 0.0
         self.theta_goal = 0.0
@@ -68,7 +70,7 @@ class MotorControl(Node):
             # raggiungo il marker
             self.go(1)
             print(" CHE CAZZO FACCIO ORA? VADO DRITTO FIGA \n")
-            time.sleep(self.dt)
+            time.sleep(self.dt/2)
 
         elif self.flag == 3:
             # vado indietro un pelo
@@ -99,23 +101,29 @@ class MotorControl(Node):
     def reached_callback(self, msg):
         # Callback for processing odometry data
         print(" \n\n\n\n                    REACHED CALLBACK ")
-        if msg.data == True and self.flag == 2:
+        stop = msg.data
+        if stop == True and self.flag == 2:
             print(" I'm in")
             self.stop()
             self.flag += 1
 
     def allign_camera(self):
+        msg = Float64()
         # Align the camera with the goal orientation
         # Next line is to handle the case where the angle wraps around from the maximum value (6.28) to the minimum value (0.0)
         diff = (self.theta_goal - self.theta + 6.28) % 6.28
-        if diff > 3.14:  # Half of the maximum range
+        if diff > 3.14: # Half of the maximum range
+            msg.data = -0.25
             self.rotate(-1)
         else:
+            msg.data = 0.25
             self.rotate(1)
         if abs(self.theta_goal - self.theta) < 0.02:
             #print(GOAL_PRINT_4)
+            msg.data = 0.0
             self.stop()
             self.flag += 1
+        self.publisher_rotation.publish(msg)
 
     def stop(self):
         # Stop the robot
@@ -123,6 +131,7 @@ class MotorControl(Node):
         cmd_vel.linear.x = 0.0
         cmd_vel.angular.z = 0.0
         self.publisher_.publish(cmd_vel)
+        time.sleep(0.1)
 
     def go(self, sign):
         # Stop the robot
@@ -137,6 +146,7 @@ class MotorControl(Node):
         cmd_vel.linear.x = 0.0
         cmd_vel.angular.z = (sign * MAX_VEL)/2
         self.publisher_.publish(cmd_vel)
+
 """
     def wait_for_input(self):
         while True:
@@ -144,6 +154,7 @@ class MotorControl(Node):
             if user_input:
                 break
 """
+
 def main(args=None):
     rclpy.init(args=args)
 
