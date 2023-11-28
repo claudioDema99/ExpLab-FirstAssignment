@@ -50,6 +50,7 @@ class RobotControl(Node):
         self.flag_marker = 0
         
         self.last_marker_area = 300000.0
+        self.iteration = 0
         
 ##############################################################################
 ############################# DEBUG FUNCTION #################################
@@ -130,11 +131,13 @@ class RobotControl(Node):
 
             # Check if the marker area is changing
             if  marker_area > self.last_marker_area:
-                self.get_logger().info("Marker area is increasing.")
-                self.rotation_camera_activation(False)
-                self.flag = 1
-                return  # Exit the loop if the condition is met
-        
+                self.iteration += 1
+                self.get_logger().warn('Iteration: {0}'.format(self.iteration))
+                if self.iteration > 20:
+                    self.get_logger().info("Marker area is increasing.")
+                    self.rotation_camera_activation(False)
+                    self.flag = 1
+                    return  # Exit the loop if the condition is met
             self.last_marker_area = marker_area
         
     def calculate_rectangle_area(self, coordinates):
