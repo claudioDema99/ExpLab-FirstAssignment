@@ -188,19 +188,13 @@ class RobotControl(Node):
             marker_area = self.calculate_rectangle_area(self.corners_marker)
             self.get_logger().info('Marker area: {0}'.format(marker_area))
             # define the area where the marker is close to the robot
-            area_distance = 3000 # 20x20 pixels  
+            area_distance = 5000 # 20x20 pixels  
             if marker_area > area_distance:
                 ###### DEBUG ######
                 self.wait_for_input()
                 ###################
                 self.marker_reached()
                 return
-            else:
-                min_area = 2000 # check if the marker is inside the camera's field of view    
-                # Check if the marker area is inside the minimum area 
-                if marker_area < min_area:    
-                    # Marker is within the specified area
-                    self.position_marker_camera(True)
         else:
             # Marker is outside of the camera's field of view
             self.position_marker_camera(False)
