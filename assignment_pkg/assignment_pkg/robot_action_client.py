@@ -123,7 +123,7 @@ class RobotControl(Node):
     def aruco_controller_area(self):
         # Check if the position of the marker is in the area
         if self.flag_marker == 1 and len(self.corners_marker) != 0: 
-            last_marker_area = 30000                  
+            last_marker_area = None                  
             while not self.flag:
                 marker_area = self.calculate_rectangle_area(self.corners_marker)
                 self.get_logger().info('Marker area: {0}'.format(marker_area))
