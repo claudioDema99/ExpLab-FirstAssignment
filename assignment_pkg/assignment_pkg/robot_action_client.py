@@ -66,6 +66,12 @@ class RobotControl(Node):
         
     ## TIMER for the CONTROLLER LOGIC ##
     def timer_callback(self):
+        # end the program when all the markers are reached
+        if self.reached_marker == 4:
+            self.get_logger().info("All the markers are reached")
+            self.destroy_node()
+            rclpy.shutdown()   
+            
         self.id_marker = self.goal_markers[self.reached_marker] # take the marker's id to reach
         if self.flag == 0:
             #self.get_logger().info("Camera is rotating, the robot is waiting")
@@ -75,11 +81,7 @@ class RobotControl(Node):
             #self.get_logger().info("Camera is following the marker, the robot is moving")
             self.aruco_follow_marker()           
 
-        # end the program when all the markers are reached
-        if self.reached_marker == 4:
-            self.get_logger().info("All the markers are reached")
-            self.destroy_node()
-            rclpy.shutdown()        
+             
     
     ## PUBLISHER to CAMERA for rotating itself in searching mode ##
     def rotation_camera_activation(self, on_off):
