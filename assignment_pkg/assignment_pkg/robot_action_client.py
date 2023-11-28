@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
-from std_msgs.msg import Bool, Float64, Float32MultiArray
+from std_msgs.msg import Bool, Float32MultiArray
 
 from ros2_aruco_interfaces.msg import ArucoMarkers
 
@@ -29,8 +29,6 @@ class RobotControl(Node):
         self.subscription_corners  # prevent unused variable warning
         # PUBBLISHER TO CAMERA for rotating itself
         self.publisher_camera_onoff = self.create_publisher(Bool, 'camera_on_off', 10)
-        # PUBBLISHER TO CAMERA the theta_goal
-        self.publisher_camera_theta = self.create_publisher(Float64, 'camera_theta_goal', 10)  
         # PUBBLISHER TO MOTOR for marker reached
         self.publisher_marker_reached = self.create_publisher(Bool, 'marker_reached', 10)
         # TIMER for doing the controller logic
@@ -50,8 +48,6 @@ class RobotControl(Node):
         self.flag = 0
         # flag to check if the marker to reach is found by the camera
         self.flag_marker = 0
-        # theta of the marker
-        self.theta = 0.0
         
 ##############################################################################
 ############################# DEBUG FUNCTION #################################
@@ -88,25 +84,12 @@ class RobotControl(Node):
         msg = Bool()
         msg.data = on_off
         self.publisher_camera_onoff.publish(msg)
-        
-    ## PUBLISHER to CAMERA the theta_goal in following mode ##
-    def position_marker_camera(self, active):
-        if active == False: # if the marker is outside of the camera's field of view
-            self.rotation_camera_activation(True)
-        else:
-            msg = Float64() 
-            msg.data = self.theta
-            self.publisher_camera_theta.publish(msg)
     
     ## PUBLISHER to MOTOR for marker reached ##
-    def marker_reached(self):
-        msg = Bool()
-        msg.data = True
-        self.publisher_marker_reached.publish(msg)
-        self.get_logger().info("Marker {0} reached".format(self.id_marker))
-        self.flag = 0
-        self.flag_marker = 0
-        self.reached_marker += 1       
+    def marker_reached(self, control):
+        msg = control
+        msg.data = control
+        self.publisher_marker_reached.publish(msg)    
                    
     ## callback for UPDATE the MARKER'S INFO ##
     def aruco_callback(self, msg):
@@ -118,18 +101,7 @@ class RobotControl(Node):
         if self.id_marker in self.ids_marker:
             self.flag_marker = 1
             #take the numeber inside the list
-            self.position_marker = self.ids_marker.index(self.id_marker)
-            # take the marker's orientation
-            qx = msg.poses[self.position_marker].orientation.x
-            qy = msg.poses[self.position_marker].orientation.y
-            qz = float(msg.poses[self.position_marker].orientation.z)
-            qw = msg.poses[self.position_marker].orientation.w
-            roll = math.atan2(2.0*(qx*qy + qw*qz), qw*qw + qx*qx - qy*qy - qz*qz)
-            if roll<0:
-                roll = math.pi + (math.pi + roll)  
-            # take the marker's info   
-            self.theta = roll
-            self.get_logger().info('Marker {0} found at theta {1}'.format(self.id_marker, self.theta))         
+            self.position_marker = self.ids_marker.index(self.id_marker)        
         else:
             # if the marker is not in the list we wait and then we check again
             self.flag_marker = 0
@@ -163,7 +135,6 @@ class RobotControl(Node):
             if marker_area < min_area + treshold:
                 self.flag = 1
                 self.rotation_camera_activation(False)
-                self.position_marker_camera(True)
             else:
                 self.get_logger().info("Target marker is outside.")
     
@@ -188,16 +159,22 @@ class RobotControl(Node):
             marker_area = self.calculate_rectangle_area(self.corners_marker)
             self.get_logger().info('Marker area: {0}'.format(marker_area))
             # define the area where the marker is close to the robot
-            area_distance = 5000 # 20x20 pixels  
+            area_distance = 7000 # 20x20 pixels  
             if marker_area > area_distance:
                 ###### DEBUG ######
                 self.wait_for_input()
                 ###################
-                self.marker_reached()
+                # send to the motor control we have reached the target market
+                self.marker_reached(True)
+                self.get_logger().info("Marker {0} reached".format(self.id_marker))
+                self.flag = 0
+                self.flag_marker = 0
+                self.reached_marker += 1   
                 return
         else:
+            # send to the camera we have lost the marker
+            self.marker_reached(False)
             # Marker is outside of the camera's field of view
-            self.position_marker_camera(False)
             self.get_logger().error("Target marker is outside the cameras' range. Rotating randomly the camera.")
     
 
