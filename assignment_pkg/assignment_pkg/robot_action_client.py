@@ -158,7 +158,7 @@ class RobotControl(Node):
             biggest_side = self.calculate_distance(self.corners_marker)
             self.get_logger().info('Biggest side: {0}'.format(biggest_side))
             # define the area where the marker is close to the robot
-            distance_check = 150  # to control
+            distance_check = 180  # to control
             if biggest_side > distance_check:
                 ###### DEBUG ######
                 #self.wait_for_input()
