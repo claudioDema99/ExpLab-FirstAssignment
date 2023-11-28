@@ -128,7 +128,7 @@ class RobotControl(Node):
                 roll = math.pi + (math.pi + roll)  
             # take the marker's info   
             self.theta = roll
-            self.get_logger().info('Marker {0} found at position {1}'.format(self.id_marker, self.position_marker))         
+            self.get_logger().info('Marker {0} found at theta {1}'.format(self.id_marker, self.theta))         
         else:
             # if the marker is not in the list we wait and then we check again
             self.flag_marker = 0
