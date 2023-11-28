@@ -5,6 +5,7 @@ from std_msgs.msg import Bool, Float32MultiArray
 
 from ros2_aruco_interfaces.msg import ArucoMarkers
 
+import math
 
 class RobotControl(Node):
 
@@ -125,11 +126,11 @@ class RobotControl(Node):
             self.get_logger().info('Marker area: {0}'.format(marker_area))
 
             # Define the minimum and maximum allowed area
-            min_area = 2000  # 20x20 pixels
-            treshold = -600 # value to have the marker in the center of the camera's field of view (more perpendicolar to the camera)
+            area_nice = 1500  # 20x20 pixels
+            treshold = 150 # value to have the marker in the center of the camera's field of view (more perpendicolar to the camera)
             
             # Check if the marker area is inside the minimum area 
-            if  marker_area > min_area + treshold :
+            if  area_nice-treshold < marker_area <  area_nice+treshold:
                 self.flag = 1
                 self.rotation_camera_activation(False)
             else:
@@ -153,11 +154,11 @@ class RobotControl(Node):
        # Check if the position of the marker is in the area
         if self.flag_marker == 1 and len(self.corners_marker) != 0:                    
             # Calculate the area of the bounding box around the marker
-            marker_area = self.calculate_rectangle_area(self.corners_marker)
-            self.get_logger().info('Marker area: {0}'.format(marker_area))
+            biggest_side = self.calculate_distance(self.corners_marker)
+            self.get_logger().info('Biggest side: {0}'.format(biggest_side))
             # define the area where the marker is close to the robot
-            area_distance = 7000 # 20x20 pixels  
-            if marker_area > area_distance:
+            distance_check = 100  # to control
+            if biggest_side > distance_check:
                 ###### DEBUG ######
                 #self.wait_for_input()
                 ###################
@@ -174,6 +175,24 @@ class RobotControl(Node):
             self.flag = 0
             # Marker is outside of the camera's field of view
             self.get_logger().error("Target marker is outside the cameras' range. Rotating randomly the camera.")
+            
+    def calculate_distance(self, coordinates):
+        x1 = coordinates[0]
+        x2 = coordinates[2]
+        x3 = coordinates[4]
+        x4 = coordinates[6]
+        y1 = coordinates[1]
+        y2 = coordinates[3]
+        y3 = coordinates[5]
+        y4 = coordinates[7]
+        
+        distance1 = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+        distance2 = math.sqrt((x3 - x1)**2 + (y3 - y1)**2)
+        distance3 = math.sqrt((x4 - x1)**2 + (y4 - y1)**2)
+        distance4 = math.sqrt((x3 - x2)**2 + (y3 - y2)**2)
+        
+        max_distance = max(distance1, distance2, distance3, distance4)
+        return max_distance
     
 
 def main(args=None):
