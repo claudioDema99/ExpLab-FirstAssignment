@@ -162,6 +162,7 @@ class RobotControl(Node):
                 self.wait_for_input()
                 ###################
                 # send to the motor control we have reached the target market
+                self.rotation_camera_activation(True)
                 self.marker_reached(True)
                 self.get_logger().info("Marker {0} reached".format(self.id_marker))
                 self.flag = 0
