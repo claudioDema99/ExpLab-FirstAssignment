@@ -129,7 +129,7 @@ class RobotControl(Node):
             treshold = -600 # value to have the marker in the center of the camera's field of view (more perpendicolar to the camera)
             
             # Check if the marker area is inside the minimum area 
-            if marker_area < min_area + treshold:
+            if  marker_area > min_area + treshold :
                 self.flag = 1
                 self.rotation_camera_activation(False)
             else:
@@ -159,7 +159,7 @@ class RobotControl(Node):
             area_distance = 7000 # 20x20 pixels  
             if marker_area > area_distance:
                 ###### DEBUG ######
-                self.wait_for_input()
+                #self.wait_for_input()
                 ###################
                 # send to the motor control we have reached the target market
                 self.rotation_camera_activation(True)
