@@ -21,9 +21,6 @@ class RobotController(Node):
         self.current_angle.data = 0.0
 
 
-
-
-
         self.target = Bool()
         self.target.data = False  # True if a new target has been received
 
@@ -35,20 +32,22 @@ class RobotController(Node):
         self.modality = Bool()
         self.modality.data = True # True if the camera is rotating, False if it is not rotating
         
-        self.waypoint_reached = Bool()
-        self.waypoint_reached.data = True # True if the waypoint has been reached, False if it has not been reached yet
+        #self.waypoint_reached = Bool()
+        #self.waypoint_reached.data = True # True if the waypoint has been reached, False if it has not been reached yet
+
+        self.begin_compensation = Bool()
+        self.begin_compensation.data = False
 
         self.angular_velocity = Float64()
         self.angular_velocity.data = 0.0
 
 
-
         self.sign = 1
 
+        self.theta_goal = Float64()
         self.theta_goal = 0.0
 
         self.modality_timer = self.create_timer(self.dt, self.camera_modality) # Timer to check the modality of the camera, created at the beginning to avoid errors
-
 
 
         # Define PID controllers for linear velocity and rotation
@@ -60,21 +59,25 @@ class RobotController(Node):
         # Position and angular errors threshold and control saturation value
         self.ang_threshold = 0.01
         
-        # Camera subscriber, it tells you the angular misalignment from theta to the goal and it tells you how the node should
-        # behave (if it should rotate or not) based on the bool of the camera_on_off
 
+
+        # Define publishers 
+        self.publisher_roatation_goal = self.create_publisher(Float64MultiArray, 'camera_theta_goal', 10)
+
+        self.cmd_vel_pub = self.create_publisher(Float64MultiArray, "/joint_cam_controller/commands", 10)
+
+
+        # Define subscribers
         self.subscriber_camera_modality = self.create_subscription(Bool, 'camera_on_off', self.camera_modality_callback, 10)
-
-        self.subscriber_camera_theta_goal = self.create_subscription(Float64, 'camera_theta_goal', self.camera_theta_callback, 10)
 
         self.subscriber_rotation = self.create_subscription(Float64, 'inverse_rotation', self.rotation_callback, 10)
 
 
-        # Cmd velocity publisher
-        self.cmd_vel_pub = self.create_publisher(Float64MultiArray, "/joint_cam_controller/commands", 10)
-
         self.get_logger().info("Revolute controller module initialized!")
         self.get_logger().info("Searching nearby markers...")
+
+
+
 
 
     def rotation_callback(self, msg: Float64):
@@ -82,8 +85,7 @@ class RobotController(Node):
         
 
 
-
-    # I receive the theta_goal from the camera and I store it in a variable
+    '''      # I receive the theta_goal from the camera and I store it in a variable
     def camera_theta_callback(self, msg: Float64):
 
         #self.get_logger().info("Target.data is: {0})".format(self.target.data))
@@ -92,11 +94,20 @@ class RobotController(Node):
         self.theta_goal = msg.data
         self.target.data = True  # I don't need to receive another target yet
         self.ang_pid.reset()
-        self.waypoint_reached.data = False
+        self.waypoint_reached.data = False    '''
+
 
 
     def camera_modality_callback(self, msg: Bool):
             self.modality.data = msg.data
+            if self.modality.data == False and self.begin_compensation == True:
+                self.get_logger().info("Camera is rotating")
+                theta_goal_msg = Float64MultiArray()
+                theta_goal_msg.data = [self.current_angle.data] 
+                self.publisher_roatation_goal.publish(theta_goal_msg.data)
+                self.begin_compensation == False
+            
+
             #self.get_logger().warn("Camera modality from callback is: {0})".format(self.modality.data))
             
             
@@ -110,9 +121,7 @@ class RobotController(Node):
 
         if self.modality.data == True: # Camera is rotatiing
 
-            
-
-            self.waypoint_reached.data = True
+            self.begin_compensation.data = True
 
             # step is the increment of the angle of the camera of 0.01 rad every dt seconds
             if self.current_angle.data >= 6.27:
@@ -135,7 +144,8 @@ class RobotController(Node):
             cmd_msg = Float64MultiArray()
             cmd_msg.data = [self.current_angle.data]
             self.cmd_vel_pub.publish(cmd_msg)
-            
+
+
 
             self.get_logger().info("\nCamera is rotating, \nCurrent Angle is: {0}".format(self.current_angle.data))
             #self.get_logger().info(' ( Waypoint_reached: {0})'.format(self.waypoint_reached.data))
@@ -152,18 +162,18 @@ class RobotController(Node):
             self.target.data = False
             self.timer = self.create_timer(self.dt, self.control_loop_callback)   '''
 
-            if self.angular_velocity > 0.0:
+            #self.begin_compensation = True
+
+            if self.angular_velocity.data < 0.0 and self.current_angle.data < 6.27:
                 self.sign = +1    
                 self.step = 0.01
-                self.current_angle.data =+ self.step*self.sign
-            elif self.angular_velocity < 0.0:
+                self.current_angle.data += self.step*self.sign
+            elif self.angular_velocity.data > 0.0 and self.current_angle.data > 0.01:
                 self.sign = -1
                 self.step = 0.01
-                self.current_angle.data =+ self.step*self.sign
-            elif self.angular_velocity == 0.0:
-                self.sign = 0
-                self.step = 0.0
-                self.current_angle.data =+ self.step*self.sign
+                self.current_angle.data += self.step*self.sign
+
+            
 
             cmd_msg = Float64MultiArray()
             cmd_msg.data = [self.current_angle.data]
