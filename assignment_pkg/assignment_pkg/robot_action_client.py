@@ -190,6 +190,9 @@ class RobotControl(Node):
             # define the area where the marker is close to the robot
             area_distance = 3000 # 20x20 pixels  
             if marker_area > area_distance:
+                ###### DEBUG ######
+                self.wait_for_input()
+                ###################
                 self.marker_reached()
                 return
             else:
