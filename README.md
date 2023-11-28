@@ -33,8 +33,49 @@ A distinctive feature of this robot is its camera system, comprised of *link_cam
 ## The Nodes
 ### ROBOT CONTROL
 
-This ROS2 Python robot controller node that utilizes Aruco markers for navigation. The controller subscribes to Aruco marker messages, receives information about marker corners, and controls the robot's movement based on the marker's position and orientation. 
+The ROS2 node RobotControl for controlling a robot's motion based on the detection of ArUco markers through a camera. The node follows a marker-based navigation approach, utilizing marker information to guide the robot's movements.
 
+## Subscribers
+
+1. **Aruco Markers Subscriber (aruco_markers):**
+   - Listens for information about ArUco markers detected by the camera.
+   - Updates the internal state with marker IDs.
+2. **Aruco Corners Subscriber (aruco_corners):**
+   - Listens for updates on the corners of detected ArUco markers.
+   - Updates the internal state with the corners' coordinates.
+     
+## Publishers
+
+1. **Camera On/Off Publisher (camera_on_off):**
+   - Publishes a `Bool` message to activate or deactivate camera rotation for searching ArUco markers.
+2. **Marker Reached Publisher (marker_reached):**
+   - Publishes a `Bool` message indicating whether the robot has reached the targeted ArUco marker.
+
+## Timer
+
+- Utilizes a timer to execute the main controller logic periodically.
+
+## Internal Variables
+
+- `id_marker:` ID of the current ArUco marker to reach.
+- `position_marker:` Position of the current marker in the list of markers seen by the camera.
+- `corners_marker:` Corners of the currently targeted ArUco marker.
+- `goal_markers:` List of ArUco markers to reach.
+- `reached_marker:` Number of markers successfully reached.
+- `flag:` Flag used for the main logic to switch between camera rotation and marker following.
+- `flag_marker:` Flag to check if the targeted marker is found by the camera.
+
+## Controller Logic
+
+1. Camera Rotation Mode (flag == 0):
+   - Activates camera rotation and waits for a targeted ArUco marker to be found.
+   - When a marker is found, transitions to marker following mode.
+2. Marker Following Mode (flag == 1):
+   - Follows the targeted ArUco marker using camera feedback.
+   - Checks if the marker is within a specified area to consider it reached.
+   - Publishes messages to indicate marker reaching status.
+3. Completion Condition:
+   - Terminates the node when all specified ArUco markers are successfully reached.
 
 
 ## Custom message and action
