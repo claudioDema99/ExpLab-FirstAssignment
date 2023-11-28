@@ -166,8 +166,7 @@ class RobotControl(Node):
                 self.get_logger().info("Marker {0} reached".format(self.id_marker))
                 self.flag = 0
                 self.flag_marker = 0
-                self.reached_marker += 1   
-                return
+                self.reached_marker += 1
         else:
             # send to the motor control we have lost the marker
             self.marker_reached(False)
