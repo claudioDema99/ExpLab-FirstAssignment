@@ -100,12 +100,8 @@ class RobotController(Node):
 
     def camera_modality_callback(self, msg: Bool):
             self.modality.data = msg.data
-            if self.modality.data == False and self.begin_compensation == True:
-                self.get_logger().info("Camera is rotating")
-                theta_goal_msg = Float64MultiArray()
-                theta_goal_msg.data = [self.current_angle.data] 
-                self.publisher_roatation_goal.publish(theta_goal_msg.data)
-                self.begin_compensation == False
+
+
             
 
             #self.get_logger().warn("Camera modality from callback is: {0})".format(self.modality.data))
@@ -164,6 +160,8 @@ class RobotController(Node):
 
             #self.begin_compensation = True
 
+
+            
             if self.angular_velocity.data < 0.0 and self.current_angle.data < 6.27:
                 self.sign = +1    
                 self.step = 0.01
@@ -178,6 +176,11 @@ class RobotController(Node):
             cmd_msg = Float64MultiArray()
             cmd_msg.data = [self.current_angle.data]
             self.cmd_vel_pub.publish(cmd_msg)
+
+            theta_goal_msg = Float64MultiArray()
+            theta_goal_msg.data = [self.current_angle.data] 
+            self.publisher_roatation_goal.publish(theta_goal_msg)
+
 
             self.get_logger().info("\nCompensating angle from Dema, \nCurrent Angle is: {0}".format(self.current_angle.data))
 
