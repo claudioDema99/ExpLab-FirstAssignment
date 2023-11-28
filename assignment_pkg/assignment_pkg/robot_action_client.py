@@ -92,9 +92,8 @@ class RobotControl(Node):
         if active == False: # if the marker is outside of the camera's field of view
             self.rotation_camera_activation(True)
         else:
-            msg = Float64()
-            theta = self.theta
-            msg.data = theta
+            msg = Float64() 
+            msg.data = self.theta
             self.publisher_camera_theta.publish(msg)
     
     ## PUBLISHER to MOTOR for marker reached ##
