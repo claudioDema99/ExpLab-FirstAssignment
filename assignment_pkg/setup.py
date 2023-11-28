@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-                'controller_logic = assignment_pkg.controller_logic:main',
+                'motor_control = assignment_pkg.motor_control:main',
                 'robot_action_client = assignment_pkg.robot_action_client:main',
                 'robot_revolute_node = assignment_pkg.robot_revolute_node:main',
         ],
