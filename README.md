@@ -1,7 +1,7 @@
 # Experimental Robotics Laboratory - Assignment 1
 
 C. Demaria (s5433737)  
-G. Galvagni (s)  
+G. Galvagni (s5521188)  
 E. Piacenti (s)
 
 ## Description
