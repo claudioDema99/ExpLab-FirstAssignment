@@ -35,7 +35,7 @@ A distinctive feature of this robot is its camera system, comprised of *link_cam
 
 The ROS2 node RobotControl for controlling a robot's motion based on the detection of ArUco markers through a camera. The node follows a marker-based navigation approach, utilizing marker information to guide the robot's movements.
 
-## Subscribers
+### Subscribers
 
 1. **Aruco Markers Subscriber (aruco_markers):**
    - Listens for information about ArUco markers detected by the camera.
@@ -44,18 +44,18 @@ The ROS2 node RobotControl for controlling a robot's motion based on the detecti
    - Listens for updates on the corners of detected ArUco markers.
    - Updates the internal state with the corners' coordinates.
      
-## Publishers
+### Publishers
 
 1. **Camera On/Off Publisher (camera_on_off):**
    - Publishes a `Bool` message to activate or deactivate camera rotation for searching ArUco markers.
 2. **Marker Reached Publisher (marker_reached):**
    - Publishes a `Bool` message indicating whether the robot has reached the targeted ArUco marker.
 
-## Timer
+### Timer
 
 - Utilizes a timer to execute the main controller logic periodically.
 
-## Internal Variables
+### Internal Variables
 
 - `id_marker:` ID of the current ArUco marker to reach.
 - `position_marker:` Position of the current marker in the list of markers seen by the camera.
@@ -65,7 +65,7 @@ The ROS2 node RobotControl for controlling a robot's motion based on the detecti
 - `flag:` Flag used for the main logic to switch between camera rotation and marker following.
 - `flag_marker:` Flag to check if the targeted marker is found by the camera.
 
-## Controller Logic
+### Controller Logic
 
 1. Camera Rotation Mode (flag == 0):
    - Activates camera rotation and waits for a targeted ArUco marker to be found.
