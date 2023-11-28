@@ -79,6 +79,7 @@ class RobotControl(Node):
             self.rotation_camera_activation(True)
             self.aruco_controller_area()
         elif self.flag == 1:
+            self.iteration = 0
             #self.get_logger().info("Camera is following the marker, the robot is moving")
             self.aruco_follow_marker()                        
     
