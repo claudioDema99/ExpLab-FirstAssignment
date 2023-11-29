@@ -7,8 +7,6 @@ from ros2_aruco_interfaces.msg import ArucoMarkers
 
 import math
 
-import time
-
 class RobotControl(Node):
 
     def __init__(self):
@@ -48,8 +46,9 @@ class RobotControl(Node):
         self.flag = 0
         # flag to check if the marker to reach is found by the camera
         self.flag_marker = 0
-        
+        # compare the area of the goal marker
         self.last_marker_area = 300000.0
+        # wait the inaccurate measurement of the camera
         self.iteration = 0
         
 ##############################################################################
