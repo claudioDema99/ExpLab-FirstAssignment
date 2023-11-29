@@ -48,6 +48,7 @@ class MotorControl(Node):
         self.theta = 0.0
         self.theta_goal = 0.0
         self.flag = 0
+        self.loop = 0
         # Counter for doesn't allow the node to block inside the callback of the action server (recursive function)
         self.dt = 0.1
         self.control_loop_timer = self.create_timer(self.dt, self.robot_movement)
@@ -58,23 +59,23 @@ class MotorControl(Node):
             # ricevo costantemente il mio theta da /odom e aspetto che mi venga inviato
             # il theta goal da /camera_theta_goal
             time.sleep(self.dt/2)
-            print(" ASPETTO IL THETA BOIA CAGNA \n")
+            print(" ASPETTO IL THETA \n")
 
         elif self.flag == 1:
             # allineo il robot con il marker
             self.allign_camera()
-            print(" MI ALLINEO CON LA CAMERA DI MERDA \n")
+            print(" MI ALLINEO CON LA CAMERA \n")
 
         elif self.flag == 2:
             # raggiungo il marker
             self.go(1)
-            print(" CHE CAZZO FACCIO ORA? VADO DRITTO FIGA \n")
+            print(" VADO DRITTO \n")
             #time.sleep(self.dt/2)
 
         elif self.flag == 3:
             # vado indietro un pelo
             # Go backwards to allow the next turn
-            print(" BOIA LADRA TORNO INDIETRO \n\n")
+            print(" TORNO INDIETRO \n\n")
             self.go(-1)
             time.sleep(self.dt * 2)
             self.stop()
@@ -107,6 +108,7 @@ class MotorControl(Node):
         if stop == True and self.flag == 2:
             print(" I'm in true")
             self.stop()
+            time.sleep(self.dt * 2)
             self.flag += 1
         elif stop == False and self.flag == 2:
             print(" I'm in false")
@@ -121,10 +123,10 @@ class MotorControl(Node):
         print("\n\n\n       THETA GOL      ")
         print(self.theta_goal)
         if diff > 3.14: # Half of the maximum range
-            msg.data = -0.25
+            msg.data = -1.0
             self.rotate(-1)
         else:
-            msg.data = 0.25
+            msg.data = 1.0
             self.rotate(1)
         if abs(self.theta_goal - self.theta) < 0.01:
             #print(GOAL_PRINT_4)
@@ -152,7 +154,7 @@ class MotorControl(Node):
         # Rotate the robot in place
         cmd_vel = Twist()
         cmd_vel.linear.x = 0.0
-        cmd_vel.angular.z = (sign * MAX_VEL)/2
+        cmd_vel.angular.z = sign * MAX_VEL
         self.publisher_.publish(cmd_vel)
 
 """

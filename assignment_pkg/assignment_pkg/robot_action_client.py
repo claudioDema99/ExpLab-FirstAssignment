@@ -134,7 +134,7 @@ class RobotControl(Node):
             if  marker_area > self.last_marker_area:
                 self.iteration += 1
                 self.get_logger().warn('Iteration: {0}'.format(self.iteration))
-                if self.iteration > 10:
+                if self.iteration > 3:
                     self.get_logger().info("Marker area is increasing.")
                     self.rotation_camera_activation(False)
                     self.flag = 1

@@ -121,13 +121,13 @@ class RobotController(Node):
 
             # step is the increment of the angle of the camera of 0.01 rad every dt seconds
             if self.current_angle.data >= 6.27:
-                self.current_angle.data = 6.27
+                self.current_angle.data = 6.26
                 self.get_logger().error('Angle is too much')
             elif self.current_angle.data <= 0.01:
-                self.current_angle.data = 0.01
+                self.current_angle.data = 0.02
                 self.get_logger().error('Angle is too low')
 
-            self.current_angle.data += 0.01 * self.sign
+            self.current_angle.data += 0.02 * self.sign
 
             self.current_angle.data = round(self.current_angle.data, 3)
 
@@ -164,11 +164,11 @@ class RobotController(Node):
             
             if self.angular_velocity.data < 0.0 and self.current_angle.data < 6.27:
                 self.sign = +1    
-                self.step = 0.01
+                self.step = 0.025
                 self.current_angle.data += self.step*self.sign
             elif self.angular_velocity.data > 0.0 and self.current_angle.data > 0.01:
                 self.sign = -1
-                self.step = 0.01
+                self.step = 0.025
                 self.current_angle.data += self.step*self.sign
 
             
