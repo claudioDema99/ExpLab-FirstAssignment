@@ -74,12 +74,10 @@ class RobotControl(Node):
             
         self.id_marker = self.goal_markers[self.reached_marker] # take the marker's id to reach
         if self.flag == 0:
-            #self.get_logger().info("Camera is rotating, the robot is waiting")
             self.rotation_camera_activation(True)
             self.aruco_controller_area()
         elif self.flag == 1:
             self.iteration = 0
-            #self.get_logger().info("Camera is following the marker, the robot is moving")
             self.aruco_follow_marker()                        
     
     ## PUBLISHER to CAMERA for rotating itself in searching mode ##
@@ -99,7 +97,6 @@ class RobotControl(Node):
         self.id_marker = self.goal_markers[self.reached_marker] # take the marker's id to reach
         # take the markers's id
         self.ids_marker = msg.marker_ids
-        self.get_logger().warn('Markers found {0}'.format(self.ids_marker))
         # check if the marker is the one we are looking for
         if self.id_marker in self.ids_marker:
             self.flag_marker = 1
@@ -127,14 +124,10 @@ class RobotControl(Node):
         # Check if the position of the marker is in the area
         if self.flag_marker == 1 and len(self.corners_marker) != 0: 
             marker_area = self.calculate_rectangle_area(self.corners_marker)
-            self.get_logger().info('Marker area: {0} and last marker area: {1}'.format(marker_area, self.last_marker_area))
-
             # Check if the marker area is changing
             if  marker_area > self.last_marker_area:
                 self.iteration += 1
-                self.get_logger().warn('Iteration: {0}'.format(self.iteration))
                 if self.iteration > 3:
-                    self.get_logger().info("Marker area is increasing.")
                     self.rotation_camera_activation(False)
                     self.flag = 1
                     return  # Exit the loop if the condition is met
@@ -159,7 +152,6 @@ class RobotControl(Node):
         if self.flag_marker == 1 and len(self.corners_marker) != 0:                    
             # Calculate the area of the bounding box around the marker
             biggest_side = self.calculate_distance(self.corners_marker)
-            self.get_logger().info('Biggest side: {0}'.format(biggest_side))
             # define the area where the marker is close to the robot
             distance_check = 200  # to control
             if biggest_side > distance_check:
