@@ -48,7 +48,6 @@ class MotorControl(Node):
         self.theta = 0.0
         self.theta_goal = 0.0
         self.flag = 0
-        self.loop = 0
         # Counter for doesn't allow the node to block inside the callback of the action server (recursive function)
         self.dt = 0.1
         self.control_loop_timer = self.create_timer(self.dt, self.robot_movement)
