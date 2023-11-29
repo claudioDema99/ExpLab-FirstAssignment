@@ -60,6 +60,10 @@ class RobotControl(Node):
                 if user_input:
                     break
                 
+    ###### DEBUG line ######
+    #self.wait_for_input()
+    ########################
+                
 ##############################################################################
 ############################# FUNCTIONS ######################################
 ##############################################################################
@@ -155,9 +159,6 @@ class RobotControl(Node):
             # define the area where the marker is close to the robot
             distance_check = 200  # to control
             if biggest_side > distance_check:
-                ###### DEBUG ######
-                #self.wait_for_input()
-                ###################
                 # send to the motor control we have reached the target market
                 self.rotation_camera_activation(True)
                 self.marker_reached(True)
