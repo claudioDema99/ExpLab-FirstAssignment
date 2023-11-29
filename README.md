@@ -79,6 +79,43 @@ The ROS2 node RobotControl for controlling a robot's motion based on the detecti
 3. Completion Condition:
    - Terminates the node when all specified ArUco markers are successfully reached.
 
+### MOTOR CONTROL
+
+The ROS2 node MotorControl for controlling the robot's motion through the input that it received from the RobotControl node. The node simply wait for receiving the angle of the Aruco Marker detection and it alligns with it, so it go straight until it received from the controller a stop message.
+
+### Subscribers
+
+1. **Odometry Subscriber (odom):**
+   - Listens and updates the orientation of the robot.
+   - Used for allign the robot with the detection angle of the Aruco Marker.
+2. **Camera Angle Subscriber (camera_theta_goal):**
+   - Receives the angle of the detected Aruco Marker.
+   - When the node received it, it begins to allign itself to this orientation.
+3. **Marker Reached Subscriber (marker_reached):**
+   - Receives a Bool from the controller.
+   - It means that the area of the Aruco Marker is sufficiently big, so the robot can stop.
+     
+### Publishers
+
+1. **Command Velocity Publisher (cmd_vel):**
+   - Publishes a `Twist` message to move the robot inside the environment.
+2. **Inverse Rotation Publisher (inverse_rotation):**
+   - Used for sincronyze the rotation of the robot with the opposite rotation of the camera, in order to let the camera know the verse in which it has to rotate.
+
+### Internal Variables
+
+- `theta:` The actual orientation angle of the robot.
+- `theta_goal:` The orientation angle received from the detection of the Aruco Marker.
+- `flag:` Used to actually manage the states of the node.
+- `dt:` Used for the timer and the sleep function inside the node.
+
+### Timer and Controller Logic
+
+- Utilizes a timer to execute the main controller logic periodically using a flag:
+   - **flag = 0:** The robot is waiting for receiving the angle of detection: when it receives from the `camera_theta_goal` topic, it passes through the next state;
+   - **flag = 1:** The robot is alligning with the Aruco Marker and it constantly publish to the camera its actual rotation speed in order to let the camera rotates in the opposite direction;
+   - **flag = 2:** The robot is going straight to the Aruco Marker until it receives a 'stop message' from the controller;
+   - **flag = 3:** The robot stops and go backwards to allow next iteration.
 
 ## Custom message and action
 
