@@ -39,7 +39,7 @@ The ROS 2 graph, showing the nodes and the connections between them:
 </figure>
 <br/>
 
-### ROBOT CONTROL
+### ROBOT CONTROLLER
 
 The ROS2 node RobotControl for controlling a robot's motion based on the detection of ArUco markers through a camera. The node follows a marker-based navigation approach, utilizing marker information to guide the robot's movements.
 
