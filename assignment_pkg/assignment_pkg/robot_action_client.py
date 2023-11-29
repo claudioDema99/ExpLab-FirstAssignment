@@ -134,7 +134,7 @@ class RobotControl(Node):
             if  marker_area > self.last_marker_area:
                 self.iteration += 1
                 self.get_logger().warn('Iteration: {0}'.format(self.iteration))
-                if self.iteration > 20:
+                if self.iteration > 10:
                     self.get_logger().info("Marker area is increasing.")
                     self.rotation_camera_activation(False)
                     self.flag = 1
@@ -162,7 +162,7 @@ class RobotControl(Node):
             biggest_side = self.calculate_distance(self.corners_marker)
             self.get_logger().info('Biggest side: {0}'.format(biggest_side))
             # define the area where the marker is close to the robot
-            distance_check = 180  # to control
+            distance_check = 200  # to control
             if biggest_side > distance_check:
                 ###### DEBUG ######
                 #self.wait_for_input()

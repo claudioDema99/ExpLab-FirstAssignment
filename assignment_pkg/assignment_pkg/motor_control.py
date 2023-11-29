@@ -76,7 +76,7 @@ class MotorControl(Node):
             # Go backwards to allow the next turn
             print(" BOIA LADRA TORNO INDIETRO \n\n")
             self.go(-1)
-            time.sleep(self.dt * 5)
+            time.sleep(self.dt * 2)
             self.stop()
             self.flag = 0
 
@@ -94,7 +94,8 @@ class MotorControl(Node):
     def theta_callback(self, msg):
         # Callback for processing odometry data
         if self.flag == 0:
-            self.theta_goal = self.theta + msg.data
+            delta_theta = msg.data
+            self.theta_goal = self.theta + delta_theta
             if self.theta_goal > 6.28:
                 self.theta_goal -= 6.28
             self.flag += 1
@@ -143,7 +144,7 @@ class MotorControl(Node):
     def go(self, sign):
         # Stop the robot
         cmd_vel = Twist()
-        cmd_vel.linear.x = sign * MAX_VEL
+        cmd_vel.linear.x = (sign * MAX_VEL)*0.50
         cmd_vel.angular.z = 0.0
         self.publisher_.publish(cmd_vel)
 
