@@ -156,19 +156,13 @@ Finally, to run the code, type the following command:
 
 The video showcasing the robot's motion in the Gazebo environment as it navigates and interacts with its surroundings. The video provides a visual representation of how the robot responds to the environment, demonstrating its movements and behaviors:
 
-<br/>
-<video width="320" height="240" controls>
-  <source src="readme_image/Gazebo_rob.mp4" type="video/mp4">
-</video>
-<br/>
+https://github.com/claudioDema99/ExpLab-FirstAssignment/assets/114250896/425a8420-1c74-4e93-bcef-bf3c2a1b7a72
+
 
 The robot's camera through an Rviz video, offering a glimpse into its perspective and visual observations. Gain insight into what the camera captures and how it operates:
 
-<br/>
-<video width="320" height="240" controls>
-  <source src="readme_image/RViz_cam.mp4" type="video/mp4">
-</video>
-<br/>
+https://github.com/claudioDema99/ExpLab-FirstAssignment/assets/114250896/50d890b1-f94b-49b8-abd3-637680c6a316
+
 
 ## Possible improvements 📈
 
