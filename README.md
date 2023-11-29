@@ -49,7 +49,7 @@ The ROS2 node RobotControl for controlling a robot's motion based on the detecti
 1. **Camera On/Off Publisher (camera_on_off):**
    - Publishes a `Bool` message to activate or deactivate camera rotation for searching ArUco markers.
 2. **Marker Reached Publisher (marker_reached):**
-   - Publishes a `Bool` message indicating whether the robot has reached the targeted ArUco marker.
+   - Publishes a `Bool` message indicating whether the robot has reached the targeted ArUco marker or if the target has been lost from the camera's view.
 
 ### Timer
 
@@ -64,6 +64,8 @@ The ROS2 node RobotControl for controlling a robot's motion based on the detecti
 - `reached_marker:` Number of markers successfully reached.
 - `flag:` Flag used for the main logic to switch between camera rotation and marker following.
 - `flag_marker:` Flag to check if the targeted marker is found by the camera.
+- `last_marker_area:` Value for comparing two consecutive measurements of the room areaalue for comparing two consecutive measurements of the room area.
+- `iteration:` Wait the inaccurate measurement of the camera.
 
 ### Controller Logic
 
