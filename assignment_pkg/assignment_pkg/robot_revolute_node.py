@@ -50,15 +50,6 @@ class RobotController(Node):
         # Timer to check the modality of the camera, created at the beginning to avoid errors
         self.modality_timer = self.create_timer(self.dt, self.camera_modality)
 
-        # Define PID controllers for linear velocity and rotation
-        self.ang_pid = PID(0.5, 0.01, 0.1)
-
-        # Controllers update frequency (equivalent to publisher rate)
-        self.ang_pid.sample_time = self.dt
-
-        # Position and angular errors threshold and control saturation value
-        self.ang_threshold = 0.01
-
         # Define counters, when 
         self.cnt_shutdown = 0
 
