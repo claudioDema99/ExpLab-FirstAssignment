@@ -63,8 +63,8 @@ def generate_launch_description():
     
     client_node = Node(
         package='assignment_pkg',
-        executable='robot_action_client',
-        name='robot_action_client'
+        executable='robot_controller',
+        name='robot_controller'
     )
     
     revolute_node = Node(
