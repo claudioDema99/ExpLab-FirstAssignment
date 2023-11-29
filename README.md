@@ -30,7 +30,21 @@ A distinctive feature of this robot is its camera system, comprised of *link_cam
 
 ## Logic of the program 🔄
 
+The logic of the problem itself is really simple and it can be explained in only 4 states, as shown:
 
+<br/>
+<figure>
+<img src="readme_image/flow_chart.pdf" style="width:140%">
+</figure>
+<br/>
+
+Going more in the details, the main nodes that manage the logic of the problem are three: 'RobotController', 'MotorControl' and 'RobotRevoluteNode'.  
+'RobotController' enables the 'RobotRevoluteNode' to start with the rotation of the camera: it looks for Aruco Marker and, in particular, it looks for the area of the Aruco Marker.  
+While the area increases with the rotation of the camera, the node continues with the movement and it only stops when the area stops growing: this means that the robot should be almost aligned with the target.  
+At this point the camera sends the actual value of the angle of rotation so the robot can aligned too: during this process, the 'MotorController' publishes to the 'RobotRevoluteNode' its rotation speed, so the camera can rotate in the opposite direction and remain aligned with the camera.  
+Once both robot and camera are aligned, the robot starts going straight.  
+While the robot goes, the 'RobotController' checks the length of the longest side visible from the camera: when it surpasses a threshold, it means that the target is reached and the process can restart with the next marker.  
+Once all the markers are reached, all the nodes shut down.
 
 ## The Nodes ⛓
 
