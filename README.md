@@ -15,7 +15,7 @@ Marker 13 -> rotate until you find marker 15; then reach marker 15
 Marker 15 -> done!  
 The robot used in this simulation has been appropriately modified as illustrated.
 
-## The Robot
+## The Robot 🤖
 
 We have created a versatile mobile platform equipped with essential components for navigation and perception. The main chassis, defined by the *link_chassis* element, forms the central structure of the robot, housing key components and providing stability. Attached to the chassis are two wheels, *link_right_wheel* and *link_left_wheel*, each connected through continuous joints (*joint_right_wheel* and *joint_left_wheel*), enabling smooth and continuous motion.  
 <br/>
