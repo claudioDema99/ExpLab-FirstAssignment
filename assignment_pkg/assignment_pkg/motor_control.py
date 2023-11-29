@@ -36,56 +36,59 @@ class MotorControl(Node):
         self.subscription
         # PUBLISHER TO CMD_VEL
         self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 10)
-        # PUBBLISHER TO ROTATE THE CAMERA IN THE OPPOSITE ROTATION
+        # PUBBLISHER TO INVERSE_ROTATION
         self.publisher_rotation = self.create_publisher(Float64, 'inverse_rotation', 10)
         # FLAG VARIABLE
         self.theta = 0.0
         self.theta_goal = 0.0
         self.flag = 0
         self.dt = 0.1
+        self.reached_marker = 0
+        # TIMER
         self.control_loop_timer = self.create_timer(self.dt, self.robot_movement)
 
     def robot_movement(self):
+        # Main control loop
 
         if self.flag == 0:
-            # ricevo costantemente il mio theta da /odom e aspetto che mi venga inviato
-            # il theta goal da /camera_theta_goal
+            # wait for theta
             time.sleep(self.dt/2)
-            #print(" ASPETTO IL THETA \n")
 
         elif self.flag == 1:
-            # allineo il robot con il marker
+            # allign camera with the marker
             self.allign_camera()
-            #print(" MI ALLINEO CON LA CAMERA \n")
 
         elif self.flag == 2:
-            # raggiungo il marker
+            # go straight
             self.go(1)
-            #print(" VADO DRITTO \n")
-            #time.sleep(self.dt/2)
 
         elif self.flag == 3:
-            # vado indietro un pelo
-            # Go backwards to allow the next turn
-            #print(" TORNO INDIETRO \n\n")
+            # go back and stop
             self.go(-1)
             time.sleep(self.dt * 2)
             self.stop()
             self.flag = 0
+            self.reached_marker += 1
+
+        if self.reached_marker == 4:
+            # shutdown the node when the robot has reached the 4 markers
+            self.get_logger().info('Shutting down...')
+            self.destroy_node()
+            rclpy.shutdown()
 
     def odom_callback(self, msg):
-        # Callback for processing odometry data
+        # callback for updating the robot orientation
         qx = msg.pose.pose.orientation.x
         qy = msg.pose.pose.orientation.y
         qz = msg.pose.pose.orientation.z
         qw = msg.pose.pose.orientation.w
-        # Convert quaternion to theta
+        # convert quaternion to theta
         self.theta = math.atan2(2.0*(qx*qy + qw*qz), qw*qw + qx*qx - qy*qy - qz*qz)
         if self.theta < 0:
             self.theta = math.pi + (math.pi + self.theta)
 
     def theta_callback(self, msg):
-        # Callback for processing odometry data
+        # callback for updating the goal orientation
         if self.flag == 0:
             delta_theta = msg.data
             self.theta_goal = self.theta + delta_theta
@@ -94,16 +97,13 @@ class MotorControl(Node):
             self.flag += 1
 
     def reached_callback(self, msg):
-        # Callback for processing odometry data
-        #print(" \n\n\n\n                    REACHED CALLBACK ")
+        # callback for stopping the robot when the marker is reached
         stop = msg.data
         if stop == True and self.flag == 2:
-            print(" I'm in true")
             self.stop()
             time.sleep(self.dt * 2)
             self.flag += 1
         elif stop == False and self.flag == 2:
-            print(" I'm in false")
             self.stop()
             self.flag = 0
 
@@ -112,23 +112,21 @@ class MotorControl(Node):
         # Align the camera with the goal orientation
         # Next line is to handle the case where the angle wraps around from the maximum value (6.28) to the minimum value (0.0)
         diff = (self.theta_goal - self.theta + 6.28) % 6.28
-        #print("\n\n\n       THETA GOL      ")
-        #print(self.theta_goal)
-        if diff > 3.14: # Half of the maximum range
+        if diff > 3.14:
             msg.data = -1.0
             self.rotate(-1)
         else:
             msg.data = 1.0
             self.rotate(1)
         if abs(self.theta_goal - self.theta) < 0.01:
-            #print(GOAL_PRINT_4)
             msg.data = 0.0
             self.stop()
             self.flag += 1
+        # publish the inverse rotation to let the camera rotate in the opposite direction
         self.publisher_rotation.publish(msg)
 
     def stop(self):
-        # Stop the robot
+        # stop the robot
         cmd_vel = Twist()
         cmd_vel.linear.x = 0.0
         cmd_vel.angular.z = 0.0
@@ -136,26 +134,18 @@ class MotorControl(Node):
         time.sleep(0.1)
 
     def go(self, sign):
-        # Stop the robot
+        # move the robot forward or backward
         cmd_vel = Twist()
         cmd_vel.linear.x = (sign * MAX_VEL)*0.50
         cmd_vel.angular.z = 0.0
         self.publisher_.publish(cmd_vel)
 
     def rotate(self, sign):
-        # Rotate the robot in place
+        # rotate the robot clockwise or counterclockwise
         cmd_vel = Twist()
         cmd_vel.linear.x = 0.0
         cmd_vel.angular.z = sign * MAX_VEL
         self.publisher_.publish(cmd_vel)
-
-"""
-    def wait_for_input(self):
-        while True:
-            user_input = input("Quando vuoi andare avanti: ")
-            if user_input:
-                break
-"""
 
 def main(args=None):
     rclpy.init(args=args)
@@ -163,19 +153,19 @@ def main(args=None):
     try:
         motor_control = MotorControl()
 
-        # Create a multi-threaded executor
+        # create a multi-threaded executor
         executor = MultiThreadedExecutor()
 
-        # Add the node to the executor
+        # add the node to the executor
         executor.add_node(motor_control)
 
         try:
-            # Use spin_once() instead of spin() to allow for multi-threaded execution
+            # use spin_once() instead of spin() to allow for multi-threaded execution
             while rclpy.ok():
                 executor.spin_once()
 
         finally:
-            # Clean up
+            # clean up
             rclpy.shutdown()
 
     except Exception as e:
