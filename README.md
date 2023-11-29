@@ -26,11 +26,11 @@ A distinctive feature of this robot is its camera system, comprised of *link_cam
 </figure>
 <br/>
 
-## Logic of the program 
+## Logic of the program 🔄
 
 
 
-## The Nodes
+## The Nodes ⛓
 
 The ROS 2 graph, showing the nodes and the connections between them:
 <br/>
