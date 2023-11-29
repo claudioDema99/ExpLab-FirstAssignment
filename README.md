@@ -4,7 +4,7 @@ C. Demaria (s5433737)
 G. Galvagni (s5521188)  
 E. Piacenti (s)
 
-## Description
+## Description 📑
 
 In this assignment, we are going to use **ROS2** in order to control a mobile robot in a 3D simulation environment called *Gazebo*.  
 We have the robot starting in the position (0, 0), and four markers with IDs 11, 12, 13, and 15.  
@@ -39,7 +39,7 @@ The ROS 2 graph, showing the nodes and the connections between them:
 </figure>
 <br/>
 
-### ROBOT CONTROLLER
+### ROBOT CONTROLLER 🧠
 
 The ROS2 node RobotControl for controlling a robot's motion based on the detection of ArUco markers through a camera. The node follows a marker-based navigation approach, utilizing marker information to guide the robot's movements.
 
@@ -87,7 +87,7 @@ The ROS2 node RobotControl for controlling a robot's motion based on the detecti
 3. Completion Condition:
    - Terminates the node when all specified ArUco markers are successfully reached.
 
-### MOTOR CONTROL
+### MOTOR CONTROL 🚂
 
 The ROS2 node MotorControl for controlling the robot's motion through the input that it received from the RobotControl node. The node simply wait for receiving the angle of the Aruco Marker detection and it alligns with it, so it go straight until it received from the controller a stop message.
 
