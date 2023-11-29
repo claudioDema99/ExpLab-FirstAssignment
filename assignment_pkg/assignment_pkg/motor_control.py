@@ -9,12 +9,6 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
 
 MAX_VEL = 0.5
-GOAL_PRINT_1 = "\n\n GOAL RECEIVED:\n\n  X = "
-GOAL_PRINT_2 = "  Y = "
-GOAL_PRINT_3 = "\n ROBOT IS ALLIGNING WITH THE CAMERA "
-GOAL_PRINT_4 = "\n ROBOT IS REACHING THE GOAL POSITION "
-GOAL_PRINT_5 = "\n GOAL REACHED\n"
-
 class MotorControl(Node):
 
     def __init__(self):
@@ -48,7 +42,6 @@ class MotorControl(Node):
         self.theta = 0.0
         self.theta_goal = 0.0
         self.flag = 0
-        # Counter for doesn't allow the node to block inside the callback of the action server (recursive function)
         self.dt = 0.1
         self.control_loop_timer = self.create_timer(self.dt, self.robot_movement)
 
@@ -58,23 +51,23 @@ class MotorControl(Node):
             # ricevo costantemente il mio theta da /odom e aspetto che mi venga inviato
             # il theta goal da /camera_theta_goal
             time.sleep(self.dt/2)
-            print(" ASPETTO IL THETA \n")
+            #print(" ASPETTO IL THETA \n")
 
         elif self.flag == 1:
             # allineo il robot con il marker
             self.allign_camera()
-            print(" MI ALLINEO CON LA CAMERA \n")
+            #print(" MI ALLINEO CON LA CAMERA \n")
 
         elif self.flag == 2:
             # raggiungo il marker
             self.go(1)
-            print(" VADO DRITTO \n")
+            #print(" VADO DRITTO \n")
             #time.sleep(self.dt/2)
 
         elif self.flag == 3:
             # vado indietro un pelo
             # Go backwards to allow the next turn
-            print(" TORNO INDIETRO \n\n")
+            #print(" TORNO INDIETRO \n\n")
             self.go(-1)
             time.sleep(self.dt * 2)
             self.stop()
@@ -102,7 +95,7 @@ class MotorControl(Node):
 
     def reached_callback(self, msg):
         # Callback for processing odometry data
-        print(" \n\n\n\n                    REACHED CALLBACK ")
+        #print(" \n\n\n\n                    REACHED CALLBACK ")
         stop = msg.data
         if stop == True and self.flag == 2:
             print(" I'm in true")
@@ -119,8 +112,8 @@ class MotorControl(Node):
         # Align the camera with the goal orientation
         # Next line is to handle the case where the angle wraps around from the maximum value (6.28) to the minimum value (0.0)
         diff = (self.theta_goal - self.theta + 6.28) % 6.28
-        print("\n\n\n       THETA GOL      ")
-        print(self.theta_goal)
+        #print("\n\n\n       THETA GOL      ")
+        #print(self.theta_goal)
         if diff > 3.14: # Half of the maximum range
             msg.data = -1.0
             self.rotate(-1)
