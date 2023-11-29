@@ -158,14 +158,12 @@ The video showcasing the robot's motion in the Gazebo environment as it navigate
 
 <video width="320" height="240" controls>
   <source src="readme_image/Gazebo_rob.mp4" type="video/mp4">
-  Your browser does not support the video tag.
 </video>
 
 The robot's camera through an Rviz video, offering a glimpse into its perspective and visual observations. Gain insight into what the camera captures and how it operates:
 
 <video width="320" height="240" controls>
   <source src="readme_image/RViz_cam.mp4" type="video/mp4">
-  Your browser does not support the video tag.
 </video>
 
 ## Possible improvements 📈
