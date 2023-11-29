@@ -109,8 +109,8 @@ class MotorControl(Node):
 
     def allign_camera(self):
         msg = Float64()
-        # Align the camera with the goal orientation
-        # Next line is to handle the case where the angle wraps around from the maximum value (6.28) to the minimum value (0.0)
+        # align the camera with the goal orientation
+        # next line is to handle the case where the angle wraps around from the maximum value (6.28) to the minimum value (0.0)
         diff = (self.theta_goal - self.theta + 6.28) % 6.28
         if diff > 3.14:
             msg.data = -1.0
@@ -136,7 +136,7 @@ class MotorControl(Node):
     def go(self, sign):
         # move the robot forward or backward
         cmd_vel = Twist()
-        cmd_vel.linear.x = (sign * MAX_VEL)*0.50
+        cmd_vel.linear.x = (sign * MAX_VEL) * 0.50
         cmd_vel.angular.z = 0.0
         self.publisher_.publish(cmd_vel)
 
