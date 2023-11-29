@@ -69,13 +69,7 @@ class RobotControl(Node):
 ##############################################################################
         
     ## TIMER for the CONTROLLER LOGIC ##
-    def timer_callback(self):
-        # end the program when all the markers are reached
-        if self.reached_marker == 4:
-            self.get_logger().info("All the markers are reached")
-            self.destroy_node()
-            rclpy.shutdown()   
-            
+    def timer_callback(self):            
         self.id_marker = self.goal_markers[self.reached_marker] # take the marker's id to reach
         if self.flag == 0:
             self.rotation_camera_activation(True)
@@ -166,6 +160,11 @@ class RobotControl(Node):
                 self.flag = 0
                 self.flag_marker = 0
                 self.reached_marker += 1
+                # end the program when all the markers are reached
+                if self.reached_marker == 4:
+                    self.get_logger().info("All the markers are reached")
+                    self.destroy_node()
+                    rclpy.shutdown() 
         else:
             # send to the motor control we have lost the marker
             self.marker_reached(False)

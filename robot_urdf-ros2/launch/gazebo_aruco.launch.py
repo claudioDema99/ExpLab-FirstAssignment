@@ -54,17 +54,17 @@ def generate_launch_description():
         executable='aruco_node',
         name='aruco_node'
     )
+    
+    control_node = Node(
+        package='assignment_pkg',
+        executable='robot_controller',
+        name='robot_controller'
+    )
 
     motor_node = Node(
         package='assignment_pkg',
         executable='motor_control',
         name='motor_control'
-    )
-    
-    client_node = Node(
-        package='assignment_pkg',
-        executable='robot_controller',
-        name='robot_controller'
     )
     
     revolute_node = Node(
@@ -88,8 +88,8 @@ def generate_launch_description():
         broad,
         aruco_generate_marker_node,
         aruco_node,
+        control_node,
         motor_node,
-        client_node,
         revolute_node,
         ExecuteProcess(
             cmd=['gazebo', '--verbose', default_world_path, '-s', 'libgazebo_ros_factory.so'],
