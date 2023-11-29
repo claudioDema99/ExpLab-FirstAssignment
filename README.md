@@ -130,6 +130,66 @@ The ROS2 node MotorControl for controlling the robot's motion through the input 
 ### ROBOT REVOLUTE NODE 📹
 
 
+## Description
+This ROS2 node controls the camera joint attached to a vertical link that rotates along the z-axis.
+
+## Subscribers
+1. **Camera Modality Subscriber**
+   - **Topic:** `camera_on_off`
+   - **Message Type:** `Bool`
+   - **Callback Function:** `camera_modality_callback`
+   
+   This node listens to the robot_action_client to know if:
+   	**True** = the joint has to rotate constantly looking for a new tarket
+   	**False** it has to compensate the rotation of the four wheeled robot
+
+2. **Rotation Subscriber**
+   - **Topic:** `inverse_rotation`
+   - **Message Type:** `Float64`
+   - **Callback Function:** `rotation_callback`
+   
+   This node listens to the motor_controller to know in which direction the four wheel robot is rotating. Knowing the values, it just simply compensate 
+   in the opposite direction the camera.
+
+3. **Marker Reached Subscriber**
+   - **Topic:** `marker_reached`
+   - **Message Type:** `Bool`
+   - **Callback Function:** `marker_reached_callback`
+   
+   This node listen to the robot_action_client to know if a marker is reached.
+
+## Publishers
+1. **Rotation Goal Publisher**
+   - **Topic:** `camera_theta_goal`
+   - **Message Type:** `Float64`
+   - **Published by:** `publisher_rotation_goal`
+   
+   This node send the current angle of rotation to the four wheeled robot to know the orientation that is required to the robot to reach the next marker
+
+2. **Joint Commands Publisher**
+   - **Topic:** `/joint_cam_controller/commands`
+   - **Message Type:** `Float64MultiArray`
+   - **Published by:** `cmd_vel_pub`
+   
+   This node updates the joint position along the z-axis of a certain angle during a fixed time
+
+## Internal Variables
+- **`dt`:** Control loop cycle time (seconds)
+- **`sign`:** Direction of rotation (-1 or 1) that represents counter-clockwise and clockwise rotation
+- **`current_angle`:** Current angle of the camera (Float64)
+- **`modality`:** Camera modality (Bool) - True for searching new markers, False for compensating the wheeled robot rotation
+- **`angular_velocity`:** Current angular velocity of the wheeled robot (Float64)
+- **`theta_goal`:** Current angle of the camera to the rotation controller (Float64). It is sent to the four wheeled robot to know where the markers is.
+- **`modality_timer`:** Timer for checking camera modality
+- **`cnt_shutdown`:** Counter for marker reached events, after reaching the last one, the node shutsdown.
+
+## Timer and Controller Logic
+- **Timer:** `modality_timer` triggers the `camera_modality` function every `dt` seconds.
+- **Controller Logic:**
+  - If `modality` is True, the camera rotates incrementally, and commands are published to rotate the joint.
+  - If `modality` is False, the node compensates for robot rotation based on the angular velocity, adjusting the camera angle and publishing the goal angle.
+
+
 ## Install and run ⚙
 
 First of all, you need to run the master by typing:
