@@ -125,10 +125,8 @@ The ROS2 node MotorControl for controlling the robot's motion through the input 
    - **flag = 2:** The robot is going straight to the Aruco Marker until it receives a 'stop message' from the controller;
    - **flag = 3:** The robot stops and go backwards to allow next iteration.
 
-## Custom message and action
 
-
-## Install and run
+## Install and run ⚙
 
 First of all, you need to run the master by typing:
 
@@ -150,7 +148,7 @@ Finally, to run the code, type the following command:
 
     roslaunch assignment_2_2022 assignment1.launch
 
-## Possible improvements
+## Possible improvements 📈
 
 The first thing you notice when running the program is that when a desired position is entered, it is not clear where in the arena this point is: we can simply put a marker inside the arena simulation in order to make this clear.  
 In this way the user can also notice if the entered position is involuntarily near or inside a wall.  
