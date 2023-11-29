@@ -51,7 +51,7 @@ Once all the markers are reached, all the nodes shut down.
 The ROS 2 graph, showing the nodes and the connections between them:
 <br/>
 <figure>
-<img src="readme_image/rosgraph.png" style="width:140%">
+<img src="readme_image/rosgraph.png" style="width:70%">
 </figure>
 <br/>
 
