@@ -206,25 +206,17 @@ This ROS2 node controls the camera joint attached to a vertical link that rotate
 
 ## Install and run ⚙
 
-First of all, you need to run the master by typing:
+First of all, you need to download the repository with the following command inside your workspace:
 
-    roscore
+    git clone https://github.com/claudioDema99/ExpLab-FirstAssignment
 
-To install the module, you need to go inside the `src` folder of your ROS workspace and run the following command:
+and from the root directory of your ROS2 workspace run the command:
 
-    git clone https://github.com/claudioDema99/RT1-SecondAssignment
-
-and from the root directory of your ROS workspace run the command:
-
-    catkin_make
-
-To run the program, you need to have installed in your system the program **xterm**. To install it, run:
-
-    sudo apt-get install xterm
+    colcon build
 
 Finally, to run the code, type the following command:
 
-    roslaunch assignment_2_2022 assignment1.launch
+    ros2 launch robot_urdf gazebo_aruco.launch.py
 
 ## Videos 📼
 
