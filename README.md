@@ -34,7 +34,7 @@ The logic of the problem itself is really simple and it can be explained in only
 
 <br/>
 <figure>
-<img src="readme_image/flow_chart.pdf" style="width:140%">
+<img src="readme_image/flow_chart.png" width="500">
 </figure>
 <br/>
 
@@ -51,7 +51,7 @@ Once all the markers are reached, all the nodes shut down.
 The ROS 2 graph, showing the nodes and the connections between them:
 <br/>
 <figure>
-<img src="readme_image/rosgraph.png" style="width:140%">
+<img src="readme_image/rosgraph.png" style="width:70%">
 </figure>
 <br/>
 
