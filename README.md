@@ -34,7 +34,7 @@ The logic of the problem itself is really simple and it can be explained in only
 
 <br/>
 <figure>
-<img src="readme_image/flow_chart.png" width="140">
+<img src="readme_image/flow_chart.png" width="250">
 </figure>
 <br/>
 
