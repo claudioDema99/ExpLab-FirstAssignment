@@ -181,6 +181,7 @@ class RobotControl(Node):
             self.get_logger().error("Target marker is outside the cameras' range. Rotating randomly the camera.")
             
     def calculate_distance(self, coordinates):
+        # calculate the distance between the corners of the marker
         x1 = coordinates[0]
         x2 = coordinates[2]
         x3 = coordinates[4]
