@@ -32,6 +32,7 @@ A distinctive feature of this robot is its camera system, comprised of *link_cam
 
 ## The Nodes
 
+The ROS 2 graph, showing the nodes and the connections between them:
 <br/>
 <figure>
 <img src="readme_image/rosgraph.png" style="width:140%">
