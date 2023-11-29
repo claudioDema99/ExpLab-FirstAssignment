@@ -21,7 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
                 'motor_control = assignment_pkg.motor_control:main',
-                'robot_action_client = assignment_pkg.robot_action_client:main',
+                'robot_controller = assignment_pkg.robot_controller:main',
                 'robot_revolute_node = assignment_pkg.robot_revolute_node:main',
         ],
     },
