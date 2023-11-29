@@ -27,14 +27,17 @@ A distinctive feature of this robot is its camera system, comprised of *link_cam
 <br/>
 
 ## Logic of the program 
+
+
+
+## The Nodes
+
 <br/>
 <figure>
 <img src="readme_image/rosgraph.png" style="width:140%">
 </figure>
 <br/>
 
-
-## The Nodes
 ### ROBOT CONTROL
 
 The ROS2 node RobotControl for controlling a robot's motion based on the detection of ArUco markers through a camera. The node follows a marker-based navigation approach, utilizing marker information to guide the robot's movements.
