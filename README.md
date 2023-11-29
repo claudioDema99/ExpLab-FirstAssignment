@@ -29,7 +29,7 @@ A distinctive feature of this robot is its camera system, comprised of *link_cam
 ## Logic of the program 
 <br/>
 <figure>
-<img src="readme_image/rosgraph.png" style="width:100%">
+<img src="readme_image/rosgraph.png" style="width:140%">
 </figure>
 <br/>
 
