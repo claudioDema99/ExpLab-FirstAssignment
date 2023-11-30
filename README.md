@@ -210,13 +210,21 @@ First of all, you need to download the repository with the following command ins
 
     git clone https://github.com/claudioDema99/ExpLab-FirstAssignment
 
-and from the root directory of your ROS2 workspace run the command:
+From the root directory of your ROS2 workspace run the command:
 
     colcon build
 
+Now, you have to install `konsole` with the command:
+
+    sudo apt-get install konsole
+
+Inside the `/scr` of your root directory use:
+
+    chmod u+x launch_exp.sh
+    
 Finally, to run the code, type the following command:
 
-    ros2 launch robot_urdf gazebo_aruco.launch.py
+    bash launch_exp.sh
 
 ## Videos 📼
 
