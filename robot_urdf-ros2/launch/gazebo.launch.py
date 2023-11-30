@@ -2,7 +2,6 @@
 Spawn Robot Description
 """
 import os
-import xacro
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -16,7 +15,6 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     test_robot_description_share = FindPackageShare(package='robot_urdf').find('robot_urdf')
     default_model_path = os.path.join(test_robot_description_share, 'urdf/robot4.xacro')
-    default_world_path = os.path.join(test_robot_description_share, 'worlds/aruco_assignment.world')
     rviz_config_path = os.path.join(test_robot_description_share, 'config/rviz.rviz')
 
     robot_state_publisher_node = Node(
@@ -30,49 +28,7 @@ def generate_launch_description():
         executable='joint_state_publisher',
         name='joint_state_publisher'
     )
-    
-    joint_camera_rot = Node(
-    	package="controller_manager",
-    	executable="spawner",
-    	arguments=["joint_cam_controller"],
-    )
-    
-    broad = Node(
-    	package="controller_manager",
-    	executable="spawner",
-    	arguments=["joint_broad"],
-    )
-    
-    aruco_generate_marker_node = Node(
-        package='ros2_aruco',
-        executable='aruco_generate_marker',
-        name='aruco_generate_marker'
-    )
-    
-    aruco_node = Node(
-        package='ros2_aruco',
-        executable='aruco_node',
-        name='aruco_node'
-    )
-    """
-    motor_node = Node(
-        package='assignment_pkg',
-        executable='motor_control',
-        name='motor_control'
-    )
-    
-    client_node = Node(
-        package='assignment_pkg',
-        executable='robot_action_client',
-        name='robot_action_client'
-    )
-    
-    revolute_node = Node(
-        package='assignment_pkg',
-        executable='robot_revolute_node',
-        name='robot_revolute_node'
-    )
-    """
+   
 
     # GAZEBO_MODEL_PATH has to be correctly set for Gazebo to be able to find the model
     spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
@@ -85,12 +41,8 @@ def generate_launch_description():
         robot_state_publisher_node,
         joint_state_publisher_node,
         spawn_entity,
-        joint_camera_rot,
-        broad,
-        aruco_generate_marker_node,
-        aruco_node,
         ExecuteProcess(
-            cmd=['gazebo', '--verbose', default_world_path, '-s', 'libgazebo_ros_factory.so'],
+            cmd=['gazebo', '--verbose','worlds/empty.world', '-s', 'libgazebo_ros_factory.so'],
             output='screen'),
         ExecuteProcess(
             cmd=['rviz2', '-d', rviz_config_path],
