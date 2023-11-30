@@ -55,7 +55,7 @@ The ROS 2 graph, showing the nodes and the connections between them:
 </figure>
 <br/>
 
-### ROBOT CONTROLLER 🧠
+## ROBOT CONTROLLER 🧠
 
 The ROS2 node RobotControl for controlling a robot's motion based on the detection of ArUco markers through a camera. The node follows a marker-based navigation approach, utilizing marker information to guide the robot's movements.
 
@@ -103,7 +103,7 @@ The ROS2 node RobotControl for controlling a robot's motion based on the detecti
 3. Completion Condition:
    - Terminates the node when all specified ArUco markers are successfully reached.
 
-### MOTOR CONTROL 🚂
+## MOTOR CONTROL 🚂
 
 The ROS2 node MotorControl for controlling the robot's motion through the input that it received from the RobotControl node. The node simply wait for receiving the angle of the Aruco Marker detection and it alligns with it, so it go straight until it received from the controller a stop message.
 
@@ -141,7 +141,7 @@ The ROS2 node MotorControl for controlling the robot's motion through the input 
    - **flag = 2:** The robot is going straight to the Aruco Marker until it receives a 'stop message' from the controller;
    - **flag = 3:** The robot stops and go backwards to allow next iteration.
 
-### ROBOT REVOLUTE NODE 📹
+## ROBOT REVOLUTE NODE 📹
 
 
 ### Description
