@@ -218,7 +218,7 @@ Now, you have to install `konsole` with the command:
 
     sudo apt-get install konsole
 
-Inside the `/scr` of your root directory use:
+Inside the `/src` of your root directory use:
 
     chmod u+x launch_exp.sh
     
