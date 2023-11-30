@@ -53,14 +53,17 @@ class MotorControl(Node):
         if self.flag == 0:
             # wait for theta
             time.sleep(self.dt/2)
+            self.get_logger().info('Waiting for theta...')
 
         elif self.flag == 1:
             # allign camera with the marker
             self.allign_camera()
+            self.get_logger().info('Alligning camera...')
 
         elif self.flag == 2:
             # go straight
             self.go(1)
+            self.get_logger().info('Going straight...')
 
         elif self.flag == 3:
             # go back and stop
@@ -69,6 +72,7 @@ class MotorControl(Node):
             self.stop()
             self.flag = 0
             self.reached_marker += 1
+            self.get_logger().info('Going back...')
 
         if self.reached_marker == 4:
             # shutdown the node when the robot has reached the 4 markers
