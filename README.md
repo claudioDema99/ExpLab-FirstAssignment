@@ -144,10 +144,10 @@ The ROS2 node MotorControl for controlling the robot's motion through the input 
 ### ROBOT REVOLUTE NODE 📹
 
 
-## Description
+### Description
 This ROS2 node controls the camera joint attached to a vertical link that rotates along the z-axis.
 
-## Subscribers
+### Subscribers
 1. **Camera Modality Subscriber**
    - **Topic:** `camera_on_off`
    - **Message Type:** `Bool`
@@ -172,7 +172,7 @@ This ROS2 node controls the camera joint attached to a vertical link that rotate
    
    This node listen to the robot_action_client to know if a marker is reached.
 
-## Publishers
+### Publishers
 1. **Rotation Goal Publisher**
    - **Topic:** `camera_theta_goal`
    - **Message Type:** `Float64`
@@ -187,7 +187,7 @@ This ROS2 node controls the camera joint attached to a vertical link that rotate
    
    This node updates the joint position along the z-axis of a certain angle during a fixed time
 
-## Internal Variables
+### Internal Variables
 - **`dt`:** Control loop cycle time (seconds)
 - **`sign`:** Direction of rotation (-1 or 1) that represents counter-clockwise and clockwise rotation
 - **`current_angle`:** Current angle of the camera (Float64)
@@ -197,7 +197,7 @@ This ROS2 node controls the camera joint attached to a vertical link that rotate
 - **`modality_timer`:** Timer for checking camera modality
 - **`cnt_shutdown`:** Counter for marker reached events, after reaching the last one, the node shutsdown.
 
-## Timer and Controller Logic
+### Timer and Controller Logic
 - **Timer:** `modality_timer` triggers the `camera_modality` function every `dt` seconds.
 - **Controller Logic:**
   - If `modality` is True, the camera rotates incrementally, and commands are published to rotate the joint.
