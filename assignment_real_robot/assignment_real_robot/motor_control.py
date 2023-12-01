@@ -63,7 +63,9 @@ class MotorControl(Node):
         elif self.flag == 2:
             # go back and stop
             self.go(-1)
-            time.sleep(self.dt * 2)
+            time.sleep(self.dt)
+            self.go(-1)
+            time.sleep(self.dt)
             self.stop()
             time.sleep(self.dt * 2)
             self.flag = 0
@@ -94,7 +96,6 @@ class MotorControl(Node):
             self.stop()
             time.sleep(self.dt * 2)
             self.flag += 1
-            self.stop()
             time.sleep(self.dt * 2)
 
     def reached_callback(self, msg):
