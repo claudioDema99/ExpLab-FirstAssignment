@@ -4,7 +4,7 @@ C. Demaria (s5433737) 🤓
 
 G. Galvagni (s5521188) 🤓
 
-E. Piacenti (s) 🤓
+E. Piacenti (s5636699) 🤓
 
 ## Description 📑
 
